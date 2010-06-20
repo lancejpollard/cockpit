@@ -2,6 +2,24 @@
 
 <q>Super DRY Settings for Ruby, Rails, and Sinatra Apps.</q>
 
+I am going to use this in all future gems that need configurable variables.  Reason being, every gem uses _some_ configurable variables, and you end up writing the same code over and over again.
+
+This will make it so if say 10 gems have custom settings, you can change this:
+
+    Paperclip.config = ...
+    S3.configure = ...
+    Authlogic.setup = ...
+    MyApp.settings = ....
+    
+to this:
+
+    Paperclip.config = Settings(:paperclip)
+    S3.configure     = Settings(:s3)
+    Authlogic.setup  = Settings(:authentication)
+    MyApp.settings   = Settings(:app)
+    
+Which translates to 1, uniform, clean, configuration file.
+
 ## Install
 
     sudo gem install cockpit
@@ -136,7 +154,7 @@ Example:
 
 There's no standard yet for organizing random properties in Rails apps.  And settings should be able to be modified through an interface (think Admin panel).
 
-Cockpit encapsulates the logic common relating to:
+Cockpit encapsulates the logic common to:
 
 - Options
 - Preferences
