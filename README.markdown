@@ -112,7 +112,9 @@
 - You have multiple storage options:
   - `Settings.store = :db`: Syncs setting to/from ActiveRecord
   - `Settings.store = :memory`: Stores everything in a Hash (memoized, super fast)
-- You can specify them on a per-model basis:
+- You can specify them on a per-model basis.
+
+Example:
 
     class User < ActiveRecord::Base
       acts_as_configurable :settings do
