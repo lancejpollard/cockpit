@@ -1,69 +1,88 @@
 # Cockpit
 
-This is to define both application and user defined settings.
+<q>Super DRY Settings for Ruby, Rails, and Sinatra Apps.</q>
 
-It can store them in memory and in the database.
+## Install
 
-It encapsulates the logic common to:
-
-- Options
-- Preferences
-- Settings
-- Configuration
-- Properties and Attributes
-
-It is to store random, hard to categorize properties/options/settings.  They can be arbitrarily nested.
-
-They can be defined in yaml, or using a basic DSL.
-
-Sometimes you need a global store, sometimes that global store needs to be customizable by the user, sometimes each user has their own set of configurations.  This handles all of those cases.
-
-## Todo
-
-- Settings should be sorted by the way they were constructed
-- Check type, so when it is saved it knows what to do.
-
-## Usage/API
-
-Each Setting/Property/Option acts the same: they are a key associated with a value, associated with a context (`configurable_type`, `configurable_id`).
-
-In the prototype tree, you can define extra settings that shouldn't change between settings (tooltips for example, or titles for forms, etc.)
-
-This means each node in the tree must be a hash:
-
-    {
-      :site => {
-        :titles => {
-          :main => {
-            :value => "Martini",
-            :tip => "Title your site!"
-          },
-          :contact_form => {
-            :value => "Contact Us",
-            :options => ["Contact Us", "Email Us", "Send us something"]
-          }
-        }
-      }
-    }
+    sudo gem install cockpit
     
-If the node doesn't have a `:value` key, then it is not a setting, it has settings somewhere down the chain.
+## Usage
 
-If you set a value, it will result with this:
+### Migration
 
-    Settings("lance.j.pollard" => "person") #=> {:lance => {:j => {:pollard => {:value => "person"}}}}
-    Settings("lance.j.pollard") #=> {:value => "person"}
-    Settings("lance.j.pollard.value") #=> "person"
-    
-## Syntax
+    create_table :settings, :force => true do |t|
+      t.string :key
+      t.string :value
+      t.string :cast_as
+      t.string :configurable_type
+      t.integer :configurable_id
+    end
 
-#### Setting
+### Setup (`config/initializers/settings.rb`)
 
-    Settings.set("site.title" => "Martini") #=> {:site => {:title => {:value => "Martini"}}}
-    Settings("site.title" => "Martini")     #=> {:site => {:title => {:value => "Martini"}}}
-    Settings["site.title"] = "Martini"      #=> {:site => {:title => {:value => "Martini"}}}
-    Settings.site.title = "Martini"         #=> {:site => {:title => {:value => "Martini"}}} # doesn't pass through store yet
-    
-#### Getting
+    Cockpit do
+      site do
+        title "Martini", :tooltip => "Set your title!"
+        tagline "Developer Friendly, Client Ready Blog with Rails 3"
+        keywords "Rails 3, Heroku, JQuery, HTML 5, Blog Engine, CSS3"
+        copyright "© 2010 Viatropos. All rights reserved."
+        timezones :value => lambda { TimeZone.first }, :options => lambda { TimeZone.all }
+        date_format "%m %d, %Y"
+        time_format "%H"
+        week_starts_on "Monday", :options => ["Monday", "Sunday", "Friday"]
+        language "en-US", :options => ["en-US", "de"]
+        touch_enabled true
+        touch_as_subdomain false
+        google_analytics ""
+        teasers :title => "Teasers" do
+          disable false
+          left 1, :title => "Left Teaser"
+          right 2
+          center 3
+        end
+        main_quote 1
+      end
+      asset :title => "Asset (and related) Settings" do
+        thumb do
+          width 100, :tip => "Thumb's width"
+          height 100, :tip => "Thumb's height"
+        end
+        medium do
+          width 600, :tip => "Thumb's width"
+          height 250, :tip => "Thumb's height"
+        end
+        large do
+          width 600, :tip => "Large's width"
+          height 295, :tip => "Large's height"
+        end
+      end
+      authentication :title => "Authentication Settings" do
+        use_open_id true
+        use_oauth true
+      end
+      front_page do
+        slideshow_tag "slideshow"
+        slideshow_effect "fade"
+      end
+      page do
+        per_page 10
+        feed_per_page 10
+      end
+      people do
+        show_avatars true
+        default_avatar "/images/missing-person.png"
+      end
+      social do
+        facebook "http://facebook.com/viatropos"
+        twitter "http://twitter.com/viatropos"
+      end
+      s3 do
+        key "my_key"
+        secret "my_secret"
+      end
+    end
+
+#### Get
 
     Settings.get("site.title").value        #=> "Martini"
     Settings.get("site.title.value")        #=> "Martini"
@@ -73,19 +92,63 @@ If you set a value, it will result with this:
     Settings["site.title.value"]            #=> "Martini"
     Settings.site.title.value               #=> "Martini" # doesn't pass through store yet
     
-## Stores
+#### Set
 
-These can hook into different persistence stores in case you want to be able to change these through an admin panel, are on a read-only filesystem, or want them user-dependent.
+    Settings.set("site.title" => "Martini") #=> {:site => {:title => {:value => "Martini"}}}
+    Settings("site.title" => "Martini")     #=> {:site => {:title => {:value => "Martini"}}}
+    Settings["site.title"] = "Martini"      #=> {:site => {:title => {:value => "Martini"}}}
+    Settings.site.title = "Martini"         #=> {:site => {:title => {:value => "Martini"}}} # doesn't pass through store yet
 
-    Settings.store = :db # Setting will save record to database, getting will check database if it's blank
-    Settings.store = :memory # Default, saves everything into TreeHash
+### Key points
 
-### Migrations
+- Each node is any word you want
+- You can nest them arbitrarily deep
+- You can use Procs
+- Values are type casted
+- Settings can be defined in yaml or using the DSL.
+- The preferred way to _get_ values is `Settings("path.to.value").value`
+- You can add custom properties to each setting:
+  - `Settings("site.title").tooltip #=> "Set your title!"`
+- You have multiple storage options:
+  - `Settings.store = :db`: Syncs setting to/from ActiveRecord
+  - `Settings.store = :memory`: Stores everything in a Hash (memoized, super fast)
+- You can specify them on a per-model basis:
 
-    t.string :key # string, used to build them into a tree
-    t.text :value # text
+    class User < ActiveRecord::Base
+      acts_as_configurable :settings do
+        name "Lance", :title => "First Name", :options => ["Lance", "viatropos"]
+        favorite do
+          color "red"
+        end
+      end
+    end
+    
+    User.new.settings #=> <#Settings @tree={
+      :favorite => {
+        :color => {:type=>:string, :value=>"red"}
+      },
+      :name => {:type=>:string, :title=>"First Name", :value=>"Lance", :options=>["Lance", "Viatropos"]}
+    }/>
+    
+### Why
 
-### Todo
+There's no standard yet for organizing random properties in Rails apps.  And settings should be able to be modified through an interface (think Admin panel).
+
+Cockpit encapsulates the logic common relating to:
+
+- Options
+- Preferences
+- Settings
+- Configuration
+- Properties and Attributes
+- Key/Value stores
+
+Sometimes you need a global store, sometimes that global store needs to be customizable by the user, sometimes each user has their own set of configurations.  This handles all of those cases.
+
+## Todo
+
+- Settings should be sorted by the way they were constructed
+- Check type, so when it is saved it knows what to do.
 
 This ended up being very similar to i18n:
 
@@ -94,7 +157,7 @@ This ended up being very similar to i18n:
 
 I think the i18n gem should be broken down into two parts: Configuration (key/value store), and Translation.
 
-#### End Goal for Ruby Community
+#### End Goal
 
 - Base key-value functionality gem, which allows you to store arbitrary key values in any database (similar to moneta).
 - i18n and Cockpit build on top of that
