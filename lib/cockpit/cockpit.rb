@@ -5,7 +5,12 @@ module Cockpit
   end
   
   module ClassMethods
-    def acts_as_configurable(*args, &block)      
+    # can be "unique_by_key"
+    # settings :text do
+    #   ...
+    # settings :social do
+    #   ...
+    def acts_as_configurable(*args, &block)
       options = args.extract_options!
       settings_name = (args.shift || "settings").to_s
       clazz_name = self.to_s.downcase.split("::").last
@@ -34,6 +39,8 @@ module Cockpit
       end
       
     end
+    alias configurable acts_as_configurable
+    alias settings acts_as_configurable
     
     def acts_as_settable
       belongs_to :configurable, :polymorphic => true

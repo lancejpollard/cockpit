@@ -96,8 +96,11 @@ module Cockpit
         options = args.extract_options!
         meth    = meth.to_s.gsub("=", "").to_sym
         if args.empty?
-          return self[meth] if self.has_key?(meth)
-          found = get(meth).set_attributes(options)
+          if self.has_key?(meth)
+            found = self[meth]
+          else
+            found = get(meth).set_attributes(options)
+          end
           found = found.instance_eval(&block) if block_given?
           found
         else

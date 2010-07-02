@@ -132,10 +132,10 @@ module Cockpit
         @global
       end
       
-      def configure(*args, &block)
+      def define!(*args, &block)
         options = args.extract_options!
         path = args.first
-        if path && !path.is_a?(Hash)
+        if path && !path.is_a?(Hash) && !block_given?
           global[path]
         elsif !options.empty?
           global.set(options)

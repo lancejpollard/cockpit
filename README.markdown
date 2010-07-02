@@ -174,8 +174,32 @@ Sometimes you need a global store, sometimes that global store needs to be custo
 
 ## Todo
 
+- Add ability to `freeze` certain branches of the tree (so plugins can use it and know `Settings.clear` won't remove it)
 - Settings should be sorted by the way they were constructed
 - Check type, so when it is saved it knows what to do.
+- Store global declarations in memory
+- Create "context" for each set of settings, giving it its own `tree`.  Allows mimicking subclasses.
+- `Settings` should be a collection of trees or `contexts`:
+    Settings
+      user
+        global
+          default
+          user_a
+          user_b
+      widget
+        global
+          default
+          widget_a
+          widget_b
+        text
+          default
+          widget_a
+          widget_b
+        social
+          default
+          widget_a
+          widget_b
+    Settings.for(:widget, :social) #=> default social widget settings.
 
 This ended up being very similar to i18n:
 
@@ -186,7 +210,7 @@ I think the i18n gem should be broken down into two parts: Configuration (key/va
 
 #### End Goal
 
-- Base key-value functionality gem, which allows you to store arbitrary key values in any database (similar to moneta).
+- Base key-value functionality gem, which allows you to store arbitrary key values in any database (similar to moneta).  Should store settings in MongoDB by default.
 - i18n and Cockpit build on top of that
 
 ### Alternatives
@@ -198,3 +222,4 @@ I think the i18n gem should be broken down into two parts: Configuration (key/va
 - [Configatron](http://github.com/markbates/configatron)
 - [RConfig](http://github.com/rahmal/rconfig)
 - [Serenity](http://github.com/progressions/serenity)
+- [ApplicationSettings](http://github.com/bradhaydon/application_settings)

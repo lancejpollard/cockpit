@@ -2,21 +2,21 @@ require 'rubygems'
 require 'active_support'
 require 'active_record'
 
-this = File.dirname(__FILE__)
+this = File.expand_path(File.dirname(__FILE__))
 Dir["#{this}/cockpit/*"].each { |c| require c }
 
 class Settings
   include Cockpit::Configuration
 end
 
+ActiveRecord::Base.send(:include, Cockpit) if defined?(ActiveRecord::Base)
+
 def Settings(*args, &block)
-  Settings.configure(*args, &block)
+  Settings.define!(*args, &block)
 end
 
 def Cockpit(*args, &block)
   Settings(*args, &block)
 end
 
-ActiveRecord::Base.send(:include, Cockpit) if defined?(ActiveRecord::Base)
-
-require "#{this}/../app/models/setting.rb"
+require File.expand_path("#{this}/../app/models/setting.rb")
