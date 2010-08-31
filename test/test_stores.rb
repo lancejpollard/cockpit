@@ -28,7 +28,6 @@ class StoreTest < ActiveSupport::TestCase
       should "have user settings" do
         assert_equal %w(red green blue), User.cockpit["favorite.colors"]
         assert_equal "Lance", User.cockpit["appelation"]
-        puts User.cockpit.definition("appelation").inspect
       end
       
     end

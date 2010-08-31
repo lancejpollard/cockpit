@@ -19,7 +19,9 @@ You define settings like this:
       end
     end
 
-That gives you [this data structure](http://gist.github.com/558480).
+That gives you [this data structure](http://gist.github.com/558480), which is accessed internally as a flat hash with keys like this:
+
+    ["site.feed.formats", "site.time_zone", "site.feed.per_page", "site", "site.feed", "site.title"]
        
 ## Global and Instance Settings
 
