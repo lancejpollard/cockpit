@@ -1,4 +1,4 @@
-# Cockpit
+# <span>Cockpit <img src='http://imgur.com/oXAb6.png' width='16' height='15/></span>
 
 > Super DRY Settings for Ruby, Rails, and Sinatra Apps.  Thin layer above wycat's [Moneta](http://github.com/wycats/moneta) for pluggable backend support.
 
