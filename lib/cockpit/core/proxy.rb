@@ -63,6 +63,10 @@ module Cockpit
       @store ||= Cockpit::Store.new(name, "memory").adapter
     end
     
+    def store=(value)
+      @store = Cockpit::Store.new(name, value).adapter
+    end
+    
     def merge!(hash)
       hash.each do |key, value|
         self[key] = value

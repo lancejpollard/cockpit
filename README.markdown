@@ -145,3 +145,21 @@ This is specified as the first DSL attribute:
 This makes it really easy to edit random settings from an interface, such as an admin panel.  Next goal is to add callbacks around save/destroy so you can run processes when settings are changed (such as changing your google_analytics, which would require re-rendering views if they were cached).
 
 The goal is to make this [enormous configuration dsl work](http://gist.github.com/558432), so I can define an entire site in a DSL.
+
+### Other API Notes
+
+When you specify the DSL, that creates a flat tree of defaults, which aren't saved to the database.  Then when you updated the setting, it saves to the database, otherwise when the value is read it and null, it will use the default from the database.
+
+You can also associate a hash with each setting definition.  This is great for say options, defaults, titles and tooltips, etc.  Here's an example:
+
+    Cockpit "active_record" do
+      site do
+        time_zones "MST", :options => Proc.new { TZInfo::Timezone.all.map(&:name) }
+      end
+    end
+    
+    assert_equal TZInfo::Timezone.all.map(&:name), Cockpit::Settings["site.time_zones"][:options].call
+    
+And you can access the definition object directly:
+
+    Cockpit::Settings.definition("site.time_zones").attributes[:options]

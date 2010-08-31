@@ -2,13 +2,8 @@ module Cockpit
   # settings have one direct definition and many child proxy
   class Settings
     class << self
-      
-      def set!(name, &block)
-        define!(name, &block)
-      end
-    
       def root
-        @root ||= Cockpit::Settings.new("root", "default")
+        @root ||= Cockpit::Settings.new(:name => "root", :scope => "default")
       end
       
       def define!(*args, &block)
@@ -54,11 +49,12 @@ module Cockpit
     
     attr_accessor :name, :scope
 
-    def initialize(name, scope, &block)
-      self.name = name.to_s
-      self.scope = scope.to_s if scope
-      raise "i need a name" unless name
-      raise "Set the scope on the settings!" unless scope
+    def initialize(options = {}, &block)
+      options.each do |key, value|
+        self.send("#{key}=", value) if self.respond_to?("#{key}=")
+      end
+      raise "i need a name" unless self.name
+      raise "Set the scope on the settings!" unless self.scope
       define!(&block)
     end
     
@@ -75,12 +71,20 @@ module Cockpit
       proxy.definitions
     end
     
+    def definition(key)
+      proxy.definition(key)
+    end
+    
     def keys
       proxy.keys
     end
     
     def store
       proxy.store
+    end
+    
+    def store=(value)
+      proxy.store = value
     end
     
     def [](key)

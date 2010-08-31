@@ -2,7 +2,7 @@ module Cockpit
   # This class defines default properties for a setting object, based on the DSL
   class Definition
     # keys is the nested keys associated with child values
-    attr_accessor :key, :value, :keys, :nested, :parent
+    attr_accessor :key, :value, :keys, :nested, :parent, :attributes
     
     def initialize(key, *args, &block)
       process(key, *args, &block)
@@ -10,13 +10,32 @@ module Cockpit
     
     def process(key, *args, &block)
       self.key = key.to_s
+      if args.length >= 1
+        if args.last.is_a?(Hash)
+          self.attributes = args.pop
+        else
+          self.attributes = {}
+        end
+      else
+        self.attributes ||= {}
+      end
       if block_given?
         self.value ||= []
         self.nested = true
         instance_eval(&block)
       else
-        self.value = *args.flatten
+        self.value = *args.first
         self.nested = false
+      end
+    end
+    
+    def [](key)
+      if attributes.has_key?(key.to_sym)
+        attributes[key.to_sym]
+      elsif attributes.has_key?(key.to_s)
+        attributes[key.to_s]
+      else
+        method_missing(key)
       end
     end
     
@@ -67,7 +86,7 @@ module Cockpit
       
       def method_missing(method, *args, &block)
         method  = method.to_s.gsub("=", "").to_sym
-        @definitions << Cockpit::Definition.new(method, args, &block)
+        @definitions << Cockpit::Definition.new(method, *args, &block)
       end
     end
   end

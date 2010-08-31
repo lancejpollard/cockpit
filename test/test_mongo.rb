@@ -35,7 +35,7 @@ class MongoDBTest < ActiveSupport::TestCase
     
     context "instance" do
       setup do
-        @settings = Cockpit::Settings.new("site-cache", "default") do
+        @settings = Cockpit::Settings.new(:name => "site-cache", :scope => "default") do
           site "a site"
         end
       end
@@ -51,14 +51,25 @@ class MongoDBTest < ActiveSupport::TestCase
             end
           end
         end
-        assert_equal "Lance", User.cockpit("author")
-        assert_equal "Pollard", User.cockpit("title.last_name")
+        assert_equal "Lance", User.cockpit["author"]
+        assert_equal "Pollard", User.cockpit["title.last_name"]
         
         user = User.new
-        assert_equal "Lance", user.cockpit("author")
-        assert_equal "Pollard", user.cockpit("title.last_name")
+        assert_equal "Lance", user.cockpit["author"]
+        assert_equal "Pollard", user.cockpit["title.last_name"]
         
         settings = load_settings
+      end
+      
+      should "be able to assiociate Proc and hash" do
+        require 'tzinfo'
+        @settings = Cockpit "mongo" do
+          site do
+            time_zones "MST", :options => Proc.new { TZInfo::Timezone.all.map(&:name) }
+          end
+        end
+        
+        assert_equal TZInfo::Timezone.all.map(&:name), @settings.definition("site.time_zones")[:options].call
       end
     end
     

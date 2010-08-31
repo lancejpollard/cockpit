@@ -1,8 +1,10 @@
 class User < ActiveRecord::Base
-  acts_as_configurable :settings do
-    name "Lance", :title => "First Name", :options => ["Lance", "Viatropos"]
+  include Cockpit
+  
+  cockpit "mongo" do
+    appelation "Lance", :title => "First Name", :options => ["Lance", "Viatropos"]
     favorite do
-      color "red"
+      colors %w(red green blue)
     end
   end
 end

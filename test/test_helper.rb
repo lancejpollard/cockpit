@@ -10,8 +10,8 @@ require 'shoulda'
 require 'shoulda/active_record'
 
 require File.dirname(__FILE__) + '/lib/database'
-
 require File.expand_path(File.join(File.dirname(__FILE__), '/../lib/cockpit'))
+require File.dirname(__FILE__) + '/lib/user'
 
 class Object
   include Cockpit

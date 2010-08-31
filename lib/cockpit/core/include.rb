@@ -1,20 +1,21 @@
 module Cockpit
   def self.included(base)
     base.class_eval do
-      def self.cockpit(key = nil, &block)
+      def self.cockpit(*args, &block)
         if block_given?
-          @cockpit = Cockpit::Settings.new(self.name.underscore.gsub(/[^a-z0-9]/, "_").squeeze("_"), "default", &block)
+          @cockpit = Cockpit::Settings.new(
+            :name => self.name.underscore.gsub(/[^a-z0-9]/, "_").squeeze("_"),
+            :scope => "default",
+            :store => args.first || "memory",
+            &block
+          )
         else
-          if key
-            @cockpit[key]
-          else
-            @cockpit
-          end
+          @cockpit
         end
       end
-
-      def cockpit(key = nil)
-        self.class.cockpit(key)
+      
+      def cockpit
+        self.class.cockpit
       end
     end
   end
