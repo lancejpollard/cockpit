@@ -124,8 +124,9 @@ Thanks to the work behind Moneta, there's a clear interface to key/value stores 
 
 The current backends supported are these keys:
 
-- active_record
 - mongodb (or 'mongo')
+- redis
+- active_record
 - file
 - memory
 - yaml
@@ -134,7 +135,7 @@ It should be easy enough to wrap the rest of the Moneta adapters.
 
 This is specified as the first DSL attribute:
 
-    Cockpit "active_record" do
+    Cockpit "redis" do
       site do
         author "Lance"
       end

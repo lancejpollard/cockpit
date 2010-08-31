@@ -21,6 +21,9 @@ module Cockpit
             when "file"
               require 'moneta/adapters/basic_file'
               Moneta::Adapters::BasicFile.new(:path => "./.cockpit")
+            when "redis"
+              require 'moneta/adapters/redis'
+              Moneta::Adapters::Redis.new
             when "memory"
               require 'moneta/adapters/memory'
               Moneta::Adapters::Memory.new

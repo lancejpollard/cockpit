@@ -96,6 +96,27 @@ class StoreTest < ActiveSupport::TestCase
       end
     end
     
+    context "Redis" do
+      setup do
+        @settings = Cockpit "redis" do
+          site do
+            title "My Site"
+            time_zone lambda { "Hawaii" }
+            feed do
+              per_page 10
+              formats %w(rss atom)
+            end
+          end
+        end
+      end
+      
+      should "get/set values" do
+        assert_equal "My Site", @settings["site.title"]
+        @settings["site.title"] = "Another Site"
+        assert_equal "Another Site", @settings["site.title"]
+      end
+    end
+    
     teardown do
       Cockpit::Settings.clear
     end
