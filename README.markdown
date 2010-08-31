@@ -1,225 +1,147 @@
 # Cockpit
 
-<q>Super DRY Settings for Ruby, Rails, and Sinatra Apps.</q>
+> Super DRY Settings for Ruby, Rails, and Sinatra Apps.  Thin layer above wycat's [Moneta](http://github.com/wycats/moneta) for pluggable backend support.
 
-I am going to use this in all future gems that need configurable variables.  Reason being, every gem uses _some_ configurable variables, and you end up writing the same code over and over again.
+## How it works
 
-This will make it so if say 10 gems have custom settings, you can change this:
+You can define arbitrarily nested key/value pairs of any type, and customize them from an Admin panel or the terminal, and save them to the MySQL, MongoDB, Redis, or even a File.
 
-    Paperclip.config  = ...
-    S3.configure      = ...
-    Authlogic.setup   = ...
-    MyApp.settings    = ....
-    
-to this:
+You define settings like this:
 
-    Settings do
-      paperclip       ...
-      s3              ...
-      authentication  ...
-      app             ...
-    end
-
-    Paperclip.config  = Settings(:paperclip)
-    S3.configure      = Settings(:s3)
-    Authlogic.setup   = Settings(:authentication)
-    MyApp.settings    = Settings(:app)
-    
-Which translates to 1, uniform, clean, configuration file.
-
-## Install
-
-    sudo gem install cockpit
-    
-## Usage
-
-### Migration
-
-    create_table :settings, :force => true do |t|
-      t.string :key
-      t.string :value
-      t.string :cast_as
-      t.string :configurable_type
-      t.integer :configurable_id
-    end
-
-### Setup (`config/initializers/settings.rb`)
-
-    Cockpit do
+    settings = Cockpit "mongo" do
       site do
-        title "Martini", :tooltip => "Set your title!"
-        tagline "Developer Friendly, Client Ready Blog with Rails 3"
-        keywords "Rails 3, Heroku, JQuery, HTML 5, Blog Engine, CSS3"
-        copyright "© 2010 Viatropos. All rights reserved."
-        timezones :value => lambda { TimeZone.first }, :options => lambda { TimeZone.all }
-        date_format "%m %d, %Y"
-        time_format "%H"
-        week_starts_on "Monday", :options => ["Monday", "Sunday", "Friday"]
-        language "en-US", :options => ["en-US", "de"]
-        touch_enabled true
-        touch_as_subdomain false
-        google_analytics ""
-        teasers :title => "Teasers" do
-          disable false
-          left 1, :title => "Left Teaser"
-          right 2
-          center 3
+        title "My Site"
+        time_zone lambda { "Hawaii" }
+        feed do
+          per_page 10
+          formats %w(rss atom)
         end
-        main_quote 1
-      end
-      asset :title => "Asset (and related) Settings" do
-        thumb do
-          width 100, :tip => "Thumb's width"
-          height 100, :tip => "Thumb's height"
-        end
-        medium do
-          width 600, :tip => "Thumb's width"
-          height 250, :tip => "Thumb's height"
-        end
-        large do
-          width 600, :tip => "Large's width"
-          height 295, :tip => "Large's height"
-        end
-      end
-      authentication :title => "Authentication Settings" do
-        use_open_id true
-        use_oauth true
-      end
-      front_page do
-        slideshow_tag "slideshow"
-        slideshow_effect "fade"
-      end
-      page do
-        per_page 10
-        feed_per_page 10
-      end
-      people do
-        show_avatars true
-        default_avatar "/images/missing-person.png"
-      end
-      social do
-        facebook "http://facebook.com/viatropos"
-        twitter "http://twitter.com/viatropos"
-      end
-      s3 do
-        key "my_key"
-        secret "my_secret"
       end
     end
 
-#### Get
+That gives you this data structure:
 
-    Settings.get("site.title").value        #=> "Martini"
-    Settings.get("site.title.value")        #=> "Martini"
-    Settings("site.title").value            #=> "Martini"
-    Settings("site.title.value")            #=> "Martini"
-    Settings["site.title"].value            #=> "Martini"
-    Settings["site.title.value"]            #=> "Martini"
-    Settings.site.title.value               #=> "Martini" # doesn't pass through store yet
+    {"site.feed.formats"=>
+      #<Cockpit::Definition:0x2510034
+       @key="formats",
+       @nested=false,
+       @value=["rss", "atom"]>,
+     "site.time_zone"=>
+      #<Cockpit::Definition:0x2510494
+       @key="time_zone",
+       @nested=false,
+       @value=#<Proc:0x0012a354@test/test_mongo.rb:11>>,
+     "site.feed.per_page"=>
+      #<Cockpit::Definition:0x25101b0 @key="per_page", @nested=false, @value=10>,
+     "site"=>
+      #<Cockpit::Definition:0x2510778
+       @key="site",
+       @nested=true,
+       @value=
+        [#<Cockpit::Definition:0x25105e8
+          @key="title",
+          @nested=false,
+          @value="My Site">,
+         #<Cockpit::Definition:0x2510494
+          @key="time_zone",
+          @nested=false,
+          @value=#<Proc:0x0012a354@test/test_mongo.rb:11>>,
+         #<Cockpit::Definition:0x2510354
+          @key="feed",
+          @nested=true,
+          @value=
+           [#<Cockpit::Definition:0x25101b0
+             @key="per_page",
+             @nested=false,
+             @value=10>,
+            #<Cockpit::Definition:0x2510034
+             @key="formats",
+             @nested=false,
+             @value=["rss", "atom"]>]>]>,
+     "site.feed"=>
+      #<Cockpit::Definition:0x2510354
+       @key="feed",
+       @nested=true,
+       @value=
+        [#<Cockpit::Definition:0x25101b0
+          @key="per_page",
+          @nested=false,
+          @value=10>,
+         #<Cockpit::Definition:0x2510034
+          @key="formats",
+          @nested=false,
+          @value=["rss", "atom"]>]>,
+     "site.title"=>
+      #<Cockpit::Definition:0x25105e8
+       @key="title",
+       @nested=false,
+       @value="My Site">}
+       
+## Global and Instance Settings
+
+By default you will have 1 set of global settings, accessible via `Cockpit::Settings.root` which is populated in this call:
+
+    Cockpit "mongo" do
+      site do
+        author "Lance"
+      end
+    end
     
-#### Set
+If you want to have settings encapsulated in an independent scope, you can just assign that to a variable:
 
-    Settings.set("site.title" => "Martini") #=> {:site => {:title => {:value => "Martini"}}}
-    Settings("site.title" => "Martini")     #=> {:site => {:title => {:value => "Martini"}}}
-    Settings["site.title"] = "Martini"      #=> {:site => {:title => {:value => "Martini"}}}
-    Settings.site.title = "Martini"         #=> {:site => {:title => {:value => "Martini"}}} # doesn't pass through store yet
+    site_settings = Cockpit "mongo" do
+      site do
+        author "Lance"
+      end
+    end
+    
+## Associated Settings with Models
 
-### Key points
-
-- Each node is any word you want
-- You can nest them arbitrarily deep
-- You can use Procs
-- Values are type casted
-- Settings can be defined in yaml or using the DSL.
-- The preferred way to _get_ values is `Settings("path.to.value").value`
-- You can add custom properties to each setting:
-  - `Settings("site.title").tooltip #=> "Set your title!"`
-- You have multiple storage options:
-  - `Settings.store = :db`: Syncs setting to/from ActiveRecord
-  - `Settings.store = :memory`: Stores everything in a Hash (memoized, super fast)
-- You can specify them on a per-model basis.
-
-Example:
+You can also associate settings with any object (plain Object, ActiveRecord, MongoMapper::Document, etc.):
 
     class User < ActiveRecord::Base
-      acts_as_configurable :settings do
-        name "Lance", :title => "First Name", :options => ["Lance", "viatropos"]
-        favorite do
-          color "red"
+      include Cockpit
+      
+      cockpit "mongo" do
+        preferences do
+          favorite_color "red"
+        end
+        settings do
+          google_analytics "123123123"
         end
       end
     end
     
-    User.new.settings #=> <#Settings @tree={
-      :favorite => {
-        :color => {:type=>:string, :value=>"red"}
-      },
-      :name => {:type=>:string, :title=>"First Name", :value=>"Lance", :options=>["Lance", "Viatropos"]}
-    }/>
+And access them like this:
+
+    user = User.new
+    user.cockpit["settings.google_analytics"] #=> "123123123"
+    user.cockpit["preferences.favorite_color"] = "green"
     
-### Why
+## Swappable Backend
 
-There's no standard yet for organizing random properties in Rails apps.  And settings should be able to be modified through an interface (think Admin panel).
+Thanks to the work behind Moneta, there's a clear interface to key/value stores (and some people have added ActiveRecord support which I've included in this).
 
-Cockpit encapsulates the logic common to:
+The current backends supported are these keys:
 
-- Options
-- Preferences
-- Settings
-- Configuration
-- Properties and Attributes
-- Key/Value stores
+- active_record
+- mongodb (or 'mongo')
+- file
+- memory
+- yaml
 
-Sometimes you need a global store, sometimes that global store needs to be customizable by the user, sometimes each user has their own set of configurations.  This handles all of those cases.
+It should be easy enough to wrap the rest of the Moneta adapters.
 
-## Todo
+This is specified as the first DSL attribute:
 
-- Add ability to `freeze` certain branches of the tree (so plugins can use it and know `Settings.clear` won't remove it)
-- Settings should be sorted by the way they were constructed
-- Check type, so when it is saved it knows what to do.
-- Store global declarations in memory
-- Create "context" for each set of settings, giving it its own `tree`.  Allows mimicking subclasses.
-- `Settings` should be a collection of trees or `contexts`:
-    Settings
-      user
-        global
-          default
-          user_a
-          user_b
-      widget
-        global
-          default
-          widget_a
-          widget_b
-        text
-          default
-          widget_a
-          widget_b
-        social
-          default
-          widget_a
-          widget_b
-    Settings.for(:widget, :social) #=> default social widget settings.
+    Cockpit "active_record" do
+      site do
+        author "Lance"
+      end
+    end
+    
+## Use Cases
 
-This ended up being very similar to i18n:
+This makes it really easy to edit random settings from an interface, such as an admin panel.  Next goal is to add callbacks around save/destroy so you can run processes when settings are changed (such as changing your google_analytics, which would require re-rendering views if they were cached).
 
-- [http://guides.rubyonrails.org/i18n.html](http://guides.rubyonrails.org/i18n.html)
-- [I asked about this on the i18n lighthouse](http://i18n.lighthouseapp.com/projects/14947/tickets/21-abstract-out-configuration-functionality-from-i18n-into-separate-gem#ticket-21-1)
-
-I think the i18n gem should be broken down into two parts: Configuration (key/value store), and Translation.
-
-#### End Goal
-
-- Base key-value functionality gem, which allows you to store arbitrary key values in any database (similar to moneta).  Should store settings in MongoDB by default.
-- i18n and Cockpit build on top of that
-
-### Alternatives
-
-- [Preferences](http://github.com/pluginaweek/preferences)
-- [SettingsGoo](http://rubygems.org/gems/settings-goo)
-- [RailsSettings](http://github.com/Squeegy/rails-settings)
-- [SimpleConfig](http://github.com/lukeredpath/simpleconfig)
-- [Configatron](http://github.com/markbates/configatron)
-- [RConfig](http://github.com/rahmal/rconfig)
-- [Serenity](http://github.com/progressions/serenity)
-- [ApplicationSettings](http://github.com/bradhaydon/application_settings)
+The goal is to make this [enormous configuration dsl work](http://gist.github.com/558432), so I can define an entire site in a DSL.

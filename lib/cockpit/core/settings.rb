@@ -19,6 +19,10 @@ module Cockpit
         root.proxy
       end
       
+      def definitions
+        root.definitions
+      end
+      
       def keys
         root.keys
       end
@@ -65,6 +69,10 @@ module Cockpit
         
     def proxy
       @proxy ||= Cockpit::Proxy.new(name, scope)
+    end
+    
+    def definitions
+      proxy.definitions
     end
     
     def keys
