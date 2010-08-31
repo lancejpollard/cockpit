@@ -148,7 +148,7 @@ The goal is to make this [enormous configuration dsl work](http://gist.github.co
 
 ### Other API Notes
 
-When you specify the DSL, that creates a flat tree of defaults, which aren't saved to the database.  Then when you updated the setting, it saves to the database, otherwise when the value is read it and null, it will use the default from the database.
+When you specify the DSL, that creates a flat tree of defaults, which aren't saved to the database.  Then when you update the setting, it saves to the database, otherwise when the value is read and is null, it will use the default from the in-memory/dsl-defined tree.
 
 You can also associate a hash with each setting definition.  This is great for say options, defaults, titles and tooltips, etc.  Here's an example:
 
@@ -163,3 +163,5 @@ You can also associate a hash with each setting definition.  This is great for s
 And you can access the definition object directly:
 
     Cockpit::Settings.definition("site.time_zones").attributes[:options]
+    
+<cite>copyright [@viatropos](http://viatropos.com) 2010</cite>
