@@ -13,7 +13,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc          = false
   s.rubyforge_project = "cockpit"
   s.platform          = Gem::Platform::RUBY
-  s.files             = %w(README.markdown Rakefile init.rb MIT-LICENSE) + Dir["{lib,rails,test,app}/**/*"] - Dir["test/tmp"]
+  s.files             = %w(README.markdown Rakefile MIT-LICENSE) + Dir["{lib,test,app}/**/*"] - Dir["test/tmp"]
   s.require_path      = "lib"
 end
 
