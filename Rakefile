@@ -5,11 +5,11 @@ require 'rake/gempackagetask'
 spec = Gem::Specification.new do |s|
   s.name              = "cockpit"
   s.authors           = ["Lance Pollard"]
-  s.version           = "0.0.1.7"
-  s.summary           = "Cockpit: Super DRY Configuration for Ruby, Rails, and Sinatra Apps"
+  s.version           = "0.1.0"
+  s.summary           = "Super DRY Configuration Management for Ruby, Rails, and Sinatra Apps.  With Pluggable NoSQL/SQL backends using Moneta"
   s.homepage          = "http://github.com/viatropos/cockpit"
   s.email             = "lancejpollard@gmail.com"
-  s.description       = "Super DRY Configuration for Ruby, Rails, and Sinatra Apps"
+  s.description       = "Super DRY Configuration for Ruby, Rails, and Sinatra Apps.  With Pluggable NoSQL/SQL backends using Moneta"
   s.has_rdoc          = false
   s.rubyforge_project = "cockpit"
   s.platform          = Gem::Platform::RUBY

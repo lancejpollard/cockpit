@@ -11,10 +11,9 @@ ActiveRecord::Schema.define(:version => 1) do
   create_table :settings, :force => true do |t|
     t.string :key
     t.string :value
-    t.string :cast_as
+    t.string :context
     t.string :configurable_type
     t.integer :configurable_id
-    t.string :context
   end
   
   create_table :users, :force => true do |t|

@@ -13,7 +13,9 @@ require File.dirname(__FILE__) + '/lib/database'
 
 require File.expand_path(File.join(File.dirname(__FILE__), '/../lib/cockpit'))
 
-require File.dirname(__FILE__) + '/lib/user'
+class Object
+  include Cockpit
+end
 
 ActiveRecord::Base.class_eval do
   def self.detonate
@@ -24,7 +26,7 @@ end
 ActiveSupport::TestCase.class_eval do
   
   def load_settings
-    Settings do
+    Cockpit do
       asset :title => "Asset (and related) Settings" do
         thumb do
           width 100, :tip => "Thumb's width"
@@ -80,10 +82,6 @@ ActiveSupport::TestCase.class_eval do
         facebook "http://facebook.com/viatropos"
         twitter "http://twitter.com/viatropos"
         email "lancejpollard@gmail.com"
-      end
-      s3 do
-        key "my_key"
-        secret "my_secret"
       end
     end
   end
