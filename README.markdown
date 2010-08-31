@@ -19,63 +19,7 @@ You define settings like this:
       end
     end
 
-That gives you this data structure:
-
-    {"site.feed.formats"=>
-      #<Cockpit::Definition:0x2510034
-       @key="formats",
-       @nested=false,
-       @value=["rss", "atom"]>,
-     "site.time_zone"=>
-      #<Cockpit::Definition:0x2510494
-       @key="time_zone",
-       @nested=false,
-       @value=#<Proc:0x0012a354@test/test_mongo.rb:11>>,
-     "site.feed.per_page"=>
-      #<Cockpit::Definition:0x25101b0 @key="per_page", @nested=false, @value=10>,
-     "site"=>
-      #<Cockpit::Definition:0x2510778
-       @key="site",
-       @nested=true,
-       @value=
-        [#<Cockpit::Definition:0x25105e8
-          @key="title",
-          @nested=false,
-          @value="My Site">,
-         #<Cockpit::Definition:0x2510494
-          @key="time_zone",
-          @nested=false,
-          @value=#<Proc:0x0012a354@test/test_mongo.rb:11>>,
-         #<Cockpit::Definition:0x2510354
-          @key="feed",
-          @nested=true,
-          @value=
-           [#<Cockpit::Definition:0x25101b0
-             @key="per_page",
-             @nested=false,
-             @value=10>,
-            #<Cockpit::Definition:0x2510034
-             @key="formats",
-             @nested=false,
-             @value=["rss", "atom"]>]>]>,
-     "site.feed"=>
-      #<Cockpit::Definition:0x2510354
-       @key="feed",
-       @nested=true,
-       @value=
-        [#<Cockpit::Definition:0x25101b0
-          @key="per_page",
-          @nested=false,
-          @value=10>,
-         #<Cockpit::Definition:0x2510034
-          @key="formats",
-          @nested=false,
-          @value=["rss", "atom"]>]>,
-     "site.title"=>
-      #<Cockpit::Definition:0x25105e8
-       @key="title",
-       @nested=false,
-       @value="My Site">}
+That gives you [this data structure](http://gist.github.com/558480).
        
 ## Global and Instance Settings
 
