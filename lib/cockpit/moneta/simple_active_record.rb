@@ -15,7 +15,7 @@ end
 
 module Moneta
   module Adapters
-    class ActiveRecord
+    class SimpleActiveRecord
       class Store < ::ActiveRecord::Base
         set_primary_key 'key'
         set_table_name 'settings'
@@ -27,8 +27,6 @@ module Moneta
       
       def initialize(options = {})
         @options = options
-        @configurable = options[:record]
-        @cache = []
         #Store.establish_connection(@options[:connection] || raise("Must specify :connection"))
         Store.set_table_name(@options[:table] || 'settings')
       end
@@ -37,18 +35,18 @@ module Moneta
         def key?(key)
           !!self[key]
         end
-        
+
         def has_key?(key)
           key?(key)
         end
 
         def [](key)
-          record = find_record(key)
+          record = Store.find_by_key(key)
           record ? record.parsed_value : nil
         end
-        
+      
         def []=(key, value)
-          record = find_record(key)
+          record = Store.find_by_key(key)
           if record
             record.update_attributes!(:value => {'root' => value}.to_json)
           else
@@ -56,19 +54,17 @@ module Moneta
             store.key = key
             store.value = {'root' => value}.to_json
             store.save!
-            @cache << store
           end
         end
-        
+
         def fetch(key, value = nil)
           value ||= block_given? ? yield(key) : default # TODO: Shouldn't yield if key is present?
           self[key] || value
         end
 
         def delete(key)
-          record = find_record(key)
+          record = Store.find_by_key(key)
           if record
-            @cache.delete(record)
             record.destroy
             record.parsed_value
           end
@@ -79,22 +75,11 @@ module Moneta
         end
 
         def clear
-          #Store.delete_all
-        end
-        
-        private
-        def find_record(key)
-          if record = @cache.detect { |i| i.key == key }
-            record
-          elsif @configurable
-            Store.find(:key => key, :configurable => @configurable) rescue nil
-          else
-            Store.find_by_key(key)
-          end
+          Store.delete_all
         end
 
       end
-      
+
       # Unimplemented
       module Expiration
         def update_key(key, options)

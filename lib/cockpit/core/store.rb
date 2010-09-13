@@ -9,7 +9,7 @@ module Cockpit
       
       def adapter(store)
         stores[store.name.to_s] ||= {}
-        unless stores[store.name.to_s].has_key?(store.value.to_s)
+#        unless stores[store.name.to_s].has_key?(store.value.to_s)
           require 'moneta'
           stores[store.name.to_s][store.value.to_s] = case store.value.to_s
             when "mongo", "mongodb"
@@ -17,7 +17,7 @@ module Cockpit
               Moneta::Adapters::MongoDB.new(:collection => store.name)
             when "active_record"
               require File.dirname(__FILE__) + '/../moneta/active_record'
-              Moneta::Adapters::ActiveRecord.new
+              Moneta::Adapters::ActiveRecord.new(:record => store.scope)
             when "file"
               require 'moneta/adapters/basic_file'
               Moneta::Adapters::BasicFile.new(:path => "./.cockpit")
@@ -31,16 +31,17 @@ module Cockpit
               require 'moneta/adapters/yaml'
               Moneta::Adapters::YAML.new
             end
-        end
+#        end
         stores[store.name.to_s][store.value.to_s]
       end
     end
     
-    attr_reader :name, :value
+    attr_reader :name, :value, :scope
     
-    def initialize(name, value)
+    def initialize(name, value, scope = nil)
       @name = name
       @value = value
+      @scope = scope
     end
     
     def adapter

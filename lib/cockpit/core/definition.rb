@@ -2,7 +2,7 @@ module Cockpit
   # This class defines default properties for a setting object, based on the DSL
   class Definition
     # keys is the nested keys associated with child values
-    attr_accessor :key, :value, :keys, :nested, :parent, :attributes
+    attr_accessor :key, :value, :keys, :nested, :parent, :attributes, :type
     
     def initialize(key, *args, &block)
       process(key, *args, &block)

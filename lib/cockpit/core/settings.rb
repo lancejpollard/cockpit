@@ -2,34 +2,41 @@ module Cockpit
   # settings have one direct definition and many child proxy
   class Settings
     class << self
-      def root
-        @root ||= Cockpit::Settings.new(:name => "root", :scope => "default")
-      end
+      attr_accessor :definitions
       
+      # Cockpit::Settings.define!(:name => "root", :scope => "default")
       def define!(*args, &block)
-        root.define!(*args, &block)
-      end
-      
-      def proxy
-        root.proxy
-      end
-      
-      def definitions
-        root.definitions
-      end
-      
-      def keys
-        root.keys
+        setting = Cockpit::Settings.new(*args, &block)
+        @root ||= setting
+        setting
       end
       
       def store
         root.store
       end
       
-      def merge!(hash)
-        root.merge!(hash)
+      def store_type
+        @store_type ||= :memory
       end
-
+      
+      def definitions
+        @definitions ||= []
+      end
+      
+      def definitions_for(name)
+        definitions.detect do |i|
+          i.name == name.to_s
+        end
+      end
+      
+      def definitions_for?(name)
+        !definitions_for(name).blank?
+      end
+      
+      def root
+        @root ||= Cockpit::Settings.new(:name => "root", :store => store_type, :scope => "default")
+      end
+      
       def [](key)
         root[key]
       end
@@ -41,74 +48,90 @@ module Cockpit
       def clear
         root.clear
       end
-
+      
       def default(key)
         root.default(key)
       end
-    end
-    
-    attr_accessor :name, :scope
-
-    def initialize(options = {}, &block)
-      options.each do |key, value|
-        self.send("#{key}=", value) if self.respond_to?("#{key}=")
+      
+      def inspect
+        "Cockpit::Settings root: #{root.inspect}"
       end
-      raise "i need a name" unless self.name
-      raise "Set the scope on the settings!" unless self.scope
-      define!(&block)
     end
     
-    def define!(*args, &block)
-      proxy.define!(*args, &block)
-      self
-    end
-        
-    def proxy
-      @proxy ||= Cockpit::Proxy.new(name, scope)
-    end
-    
-    def definitions
-      proxy.definitions
-    end
-    
-    def definition(key)
-      proxy.definition(key)
-    end
-    
-    def keys
-      proxy.keys
-    end
-    
-    def store
-      proxy.store
+    attr_accessor :name, :scope, :store, :record
+
+    # Settings.new(:store => :memory, :record => @user, :definitions => Settings.definitions.first)
+    def initialize(*args, &block)
+      options = args.extract_options!
+      options[:name] ||= "root"
+      options[:store] ||= args.first
+      options.each do |k, v|
+        send("#{k}=", v)
+      end
+      raise ArgumentError.new("pass in a :store to Cockpit::Settings") if self.store.nil?
+      
+      args << options
+      
+      if definition = self.class.definitions_for(options[:name])
+        definition.define!(*args, &block)
+      else
+        self.class.definitions << Cockpit::Definitions.new(*args, &block)
+      end
     end
     
     def store=(value)
-      proxy.store = value
+      @store = Cockpit::Store.new(name, value, record).adapter
     end
     
+    def merge!(hash)
+      hash.each do |key, value|
+        self[key] = value
+      end
+    end
+
+    def keys
+      definitions.keys
+    end
+
     def [](key)
-      proxy[key]
+      self.store[key.to_s] || default(key.to_s)
     end
     
     def []=(key, value)
-      proxy[key] = value
-    end
-    
-    def has_key?(key)
-      proxy.has_key?(key)
+      self.store[key.to_s] = value
     end
     
     def clear
-      proxy.clear
+      self.store.clear
+    end
+    
+    def has_key?(key)
+      !_definition(key).blank?
     end
     
     def default(key)
-      proxy.default(key)
+      _definition(key).value
+    end
+    
+    def definition(key)
+      _definition(key).dup
+    end
+    
+    protected
+    def definitions
+      @definitions ||= self.class.definitions_for(self.name)
+    end
+    
+    def _definition(key)
+      definitions[key.to_s]
     end
     
     def method_missing(method, *args, &block)
-      proxy.method_missing(method, *args, &block)
+      if has_key?(method)
+        definition(method)
+      else
+        super(method, *args, &block)
+      end
     end
   end
 end
