@@ -6,7 +6,7 @@ class StoreTest < ActiveSupport::TestCase
     
     context "ActiveRecord" do
       setup do
-        @settings = Cockpit "active_record" do
+        @settings = Cockpit :active_record do
           site do
             title "My Site"
             time_zone lambda { "Hawaii" }
@@ -17,11 +17,11 @@ class StoreTest < ActiveSupport::TestCase
           end
         end
       end
-
+      
       should "get/set values" do
         assert_equal "My Site", @settings["site.title"]
         @settings["site.title"] = "Another Site"
-        assert_equal 1, Moneta::Adapters::ActiveRecord::Store.count
+        assert_equal 1, Moneta::ActiveRecord::Store.count
         assert_equal "Another Site", @settings["site.title"]
       end
       
@@ -34,7 +34,7 @@ class StoreTest < ActiveSupport::TestCase
     
     context "MongoDB" do
       setup do
-        @settings = Cockpit "mongodb" do
+        @settings = Cockpit :mongodb do
           site do
             title "My Site"
             time_zone lambda { "Hawaii" }
@@ -55,7 +55,7 @@ class StoreTest < ActiveSupport::TestCase
     
     context "File" do
       setup do
-        @settings = Cockpit "file" do
+        @settings = Cockpit :file do
           site do
             title "My Site"
             time_zone lambda { "Hawaii" }
@@ -76,7 +76,7 @@ class StoreTest < ActiveSupport::TestCase
     
     context "Memory" do
       setup do
-        @settings = Cockpit "memory" do
+        @settings = Cockpit :memory do
           site do
             title "My Site"
             time_zone lambda { "Hawaii" }
@@ -97,7 +97,7 @@ class StoreTest < ActiveSupport::TestCase
     
     context "Redis" do
       setup do
-        @settings = Cockpit "redis" do
+        @settings = Cockpit :redis do
           site do
             title "My Site"
             time_zone lambda { "Hawaii" }

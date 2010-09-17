@@ -36,6 +36,13 @@ module Cockpit
       super(key.to_s)
     end
     
+    def to_hash
+      keys.inject({}) do |hash, key|
+        hash[key] = self[key].value
+        hash
+      end
+    end
+    
     def method_missing(method, *args, &block)
       if has_key?(method)
         self[method]

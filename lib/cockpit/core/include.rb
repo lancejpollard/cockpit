@@ -10,13 +10,25 @@ module Cockpit
     def self.included(base)
       base.class_eval do
         def self.cockpit(*args, &block)
-          if block_given?
+          if block_given? || @cockpit.nil?
             @cockpit = Cockpit::Settings.new(
               :name => self.name.underscore.gsub(/[^a-z0-9]/, "_").squeeze("_"),
-              :scope => "default",
               :store => :active_record,
               &block
             )
+            
+            @cockpit.keys.each do |key|
+              next if key =~ /\./
+              
+              define_method key do
+                send(:cockpit)[key]
+              end
+              
+              define_method "#{key}?" do
+                !send(key).blank?
+              end
+            end
+            
           else
             @cockpit
           end
@@ -26,7 +38,6 @@ module Cockpit
           unless @cockpit
             @cockpit = Cockpit::Settings.new(
               :name => self.class.cockpit.name,
-              :scope => "default",
               :store => :active_record,
               :record => self
             )
@@ -34,6 +45,18 @@ module Cockpit
           
           @cockpit
         end
+        
+        def get(key)
+          cockpit[key]
+        end unless respond_to?(:get)
+
+        def set(*args)
+          if args.last.is_a?(Hash)
+            cockpit.set(args.last)
+          else
+            cockpit[args.first] = args.last
+          end
+        end unless respond_to?(:set)
       end
     end
   end

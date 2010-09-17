@@ -13,23 +13,23 @@ module Cockpit
           require 'moneta'
           stores[store.name.to_s][store.value.to_s] = case store.value.to_s
             when "mongo", "mongodb"
-              require 'moneta/adapters/mongodb'
-              Moneta::Adapters::MongoDB.new(:collection => store.name)
+              require 'moneta/mongodb'
+              Moneta::MongoDB.new(:collection => store.name)
             when "active_record"
               require File.dirname(__FILE__) + '/../moneta/active_record'
-              Moneta::Adapters::ActiveRecord.new(:record => store.scope)
+              Moneta::ActiveRecord.new(:record => store.scope)
             when "file"
-              require 'moneta/adapters/basic_file'
-              Moneta::Adapters::BasicFile.new(:path => "./.cockpit")
+              require 'moneta/basic_file'
+              Moneta::BasicFile.new(:path => "./.cockpit")
             when "redis"
-              require 'moneta/adapters/redis'
-              Moneta::Adapters::Redis.new
+              require 'moneta/redis'
+              Moneta::Redis.new
             when "memory"
-              require 'moneta/adapters/memory'
-              Moneta::Adapters::Memory.new
+              require 'moneta/memory'
+              Moneta::Memory.new
             when "yaml"
-              require 'moneta/adapters/yaml'
-              Moneta::Adapters::YAML.new
+              require 'moneta/yaml'
+              Moneta::YAML.new
             end
 #        end
         stores[store.name.to_s][store.value.to_s]

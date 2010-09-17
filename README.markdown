@@ -6,9 +6,13 @@
 
 You can define arbitrarily nested key/value pairs of any type, and customize them from an Admin panel or the terminal, and save them to the MySQL, MongoDB, Redis, or even a File.
 
+1. Settings can be associated with a model class
+2. Settings can be associated with a model instance, which can use the model class settings as defaults
+3. Settings can be global and not reference a model at all (basic key/value store).
+
 You define settings like this:
 
-    settings = Cockpit "mongo" do
+    settings = Cockpit :mongo do
       site do
         title "My Site"
         time_zone lambda { "Hawaii" }
@@ -27,7 +31,7 @@ That gives you [this data structure](http://gist.github.com/558480), which is ac
 
 By default you will have 1 set of global settings, accessible via `Cockpit::Settings.root` which is populated in this call:
 
-    Cockpit "mongo" do
+    Cockpit :mongo do
       site do
         author "Lance"
       end
@@ -35,7 +39,7 @@ By default you will have 1 set of global settings, accessible via `Cockpit::Sett
     
 If you want to have settings encapsulated in an independent scope, you can just assign that to a variable:
 
-    site_settings = Cockpit "mongo" do
+    site_settings = Cockpit :mongo do
       site do
         author "Lance"
       end
@@ -48,7 +52,7 @@ You can also associate settings with any object (plain Object, ActiveRecord, Mon
     class User < ActiveRecord::Base
       include Cockpit
       
-      cockpit "mongo" do
+      cockpit :mongo do
         preferences do
           favorite_color "red"
         end
@@ -81,7 +85,7 @@ It should be easy enough to wrap the rest of the Moneta adapters.
 
 This is specified as the first DSL attribute:
 
-    Cockpit "redis" do
+    Cockpit :redis do
       site do
         author "Lance"
       end
@@ -99,7 +103,7 @@ When you specify the DSL, that creates a flat tree of defaults, which aren't sav
 
 You can also associate a hash with each setting definition.  This is great for say options, defaults, titles and tooltips, etc.  Here's an example:
 
-    Cockpit "active_record" do
+    Cockpit :active_record do
       site do
         time_zones "MST", :options => Proc.new { TZInfo::Timezone.all.map(&:name) }
       end
@@ -110,5 +114,17 @@ You can also associate a hash with each setting definition.  This is great for s
 And you can access the definition object directly:
 
     Cockpit::Settings.definition("site.time_zones").attributes[:options]
+    
+## Customizations
+
+Not yet implemented, just ideas.
+
+If you want to extend the Relationship model and reference that in your child/parent classes, you can do that like so:
+
+    class Bookmark < ActsAsJoinable::Relationship; end
+    
+    class User < ActiveRecord::Base
+      joins :posts, :as => :parent, :through => :bookmark
+    end
     
 <cite>copyright [@viatropos](http://viatropos.com) 2010</cite>

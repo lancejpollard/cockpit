@@ -117,6 +117,17 @@ module Cockpit
       _definition(key).dup
     end
     
+    def to_hash
+      keys.inject({}) do |hash, key|
+        hash[key] = self[key]
+        hash
+      end
+    end
+    
+    def roots
+      @roots ||= keys.select { |key| key !~ /\./ }
+    end
+    
     protected
     def definitions
       @definitions ||= self.class.definitions_for(self.name)

@@ -5,7 +5,7 @@ class MongoDBTest < ActiveSupport::TestCase
   context "MongoDB" do
     
     setup do
-      Cockpit "mongo" do
+      Cockpit :mongo do
         site do
           title "My Site"
           time_zone lambda { "Hawaii" }
@@ -19,12 +19,6 @@ class MongoDBTest < ActiveSupport::TestCase
     
     should "retrieve default values" do
       assert_equal "My Site", Cockpit::Settings.default("site.title")
-    end
-    
-    should "define default values at runtime" do
-      Cockpit::Settings["site.title"] = "New Site"
-      assert_equal "New Site", Cockpit::Settings.default("site.title")
-      assert_equal "New Site", Cockpit::Settings["site.title"]
     end
     
     should "use moneta" do
@@ -63,7 +57,7 @@ class MongoDBTest < ActiveSupport::TestCase
       
       should "be able to assiociate Proc and hash" do
         require 'tzinfo'
-        @settings = Cockpit "mongo" do
+        @settings = Cockpit :mongo do
           site do
             time_zones "MST", :options => Proc.new { TZInfo::Timezone.all.map(&:name) }
           end
