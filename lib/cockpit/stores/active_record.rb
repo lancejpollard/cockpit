@@ -64,16 +64,16 @@ module Cockpit
         record.save! if record && record.new_record?
         
         setting = find_setting(key)
-        attributes = {:value => {'root' => value}.to_json}.merge(configurable_attributes)
+        attributes = {:value => {'root' => value}.to_json}#.merge(configurable_attributes)
         
         if setting
           setting.update_attributes!(attributes)
         else
           setting = Setting.new(attributes)
           setting.key = key
-          setting.save!
-          cache << setting
           record.settings << setting if record
+#          setting.save!
+          cache << setting
         end
       end
       
@@ -114,7 +114,7 @@ module Cockpit
       def configurable_attributes
         conditions = {}
         if record
-          conditions[:configurable_type] = record.class.name
+          conditions[:configurable_type] = [record.class.name, record.class.base_class.name]
           conditions[:configurable_id] = record.id
         else
           conditions[:configurable_type] = nil
