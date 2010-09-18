@@ -15,7 +15,7 @@ spec = Gem::Specification.new do |s|
   s.platform          = Gem::Platform::RUBY
   s.files             = %w(README.markdown MIT-LICENSE.markdown) + Dir["{lib}/**/*"]
   s.require_path      = "lib"
-  s.add_dependency("moneta", "0.6.0")
+  s.add_dependency("defined-by")
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|

@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), 'test_helper')
 
-class ActiveRecordTest < ActiveSupport::TestCase
+class ActiveRecordTest < ActiveRecord::TestCase
   
   context "ActiveRecord" do
     
@@ -47,8 +47,19 @@ class ActiveRecordTest < ActiveSupport::TestCase
         assert_kind_of Cockpit::Settings::Definition, @user.cockpit("with_attributes.array")
         assert_equal "Colors", @user.cockpit("with_attributes.array").attributes[:title]
       end
+      
+      should "only make one query to get settings" do
+        @user.save!
+        
+        # ideally want some sort of caching mechanism, so it retrieves and saves all settings
+        assert_queries(3) do
+          user = User.last
+          user.cockpit["with_attributes.array"]
+          user.cockpit["implicitly_typed.float"]
+        end
+      end
     end
-
+    
     context "global settings" do
       setup do
         @settings = load_settings(:active_record)

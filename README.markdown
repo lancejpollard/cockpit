@@ -115,4 +115,11 @@ And you can access the definition object directly:
 
     Cockpit::Settings.definition("site.time_zones").attributes[:options]
     
+You can even do this in the terminal:
+
+    irb -r 'rubygems'
+    require 'cockpit'
+    Cockpit { site { title "Lance" } }
+    puts Cockpit::Settings["site.title"] #=> "Lance"
+    
 <cite>copyright [@viatropos](http://viatropos.com) 2010</cite>
