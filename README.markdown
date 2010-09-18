@@ -33,7 +33,7 @@ That gives you an instance of `Cockpit::Settings`, a tree data structure.
 
 If you've defined your `:active_record` settings like above, which are _global_ settings, you can use them like this:
 
-### `Get` Methods
+### Get Methods
 
     Cockpit::Settings["site.feed.per_page"] #=> 10
     Cockpit::Settings("site.feed.per_page") #=> 10
@@ -45,7 +45,7 @@ You can also check to see if these settings exist:
 
     Cockpit::Settings.site.feed.per_page? #=> true
 
-### `Set` Methods
+### Set Methods
 
     Cockpit::Settings["site.feed.per_page"] = 20
     Cockpit::Settings("site.feed.per_page", 20)
