@@ -39,7 +39,11 @@ module Cockpit
           if attributes.has_key?(:default)
             @value = attributes.delete(:default)
           else
-            @value = args
+            if args.is_a?(Class)
+              @type = args
+            else
+              @value = args
+            end
           end
           
           @validation = attributes.delete(:if)

@@ -38,10 +38,21 @@ class User < ActiveRecord::Base
       nope "I'm invalid", :if => lambda { |key, value|
         !self.is_a?(User)
       }
+      birthday DateTime,
+        :before => lambda { |key|
+          self.name ||= "Lance"
+        },
+        :after => :queue_birthday_message,
+        :if => lambda { |key, value|
+          value =~ /\d\d\/\d\d\/\d\d\d\d/ # 10/03/1986
+        }
     end
   end
   
   def set_name(key, value)
     self.name = value
+  end
+  
+  def queue_birthday_message
   end
 end

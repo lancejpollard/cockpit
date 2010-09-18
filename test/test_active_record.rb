@@ -105,6 +105,13 @@ class ActiveRecordTest < ActiveRecord::TestCase
         @user.settings_with_callbacks.nope = "Try to change me"
         
         assert_not_equal "Try to change me", @user.settings_with_callbacks.nope.value
+        
+        assert_equal DateTime, @user.cockpit("settings_with_callbacks.birthday").type
+        
+        @user.settings_with_callbacks.birthday = "10/03/1986"
+        
+        assert_equal "10/03/1986", @user.settings_with_callbacks.birthday.value
+        assert_equal "Lance", @user.name # randomly set it in birthday before callback, for demo purposes
       end
     end
     
