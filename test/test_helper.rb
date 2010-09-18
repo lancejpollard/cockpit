@@ -8,14 +8,18 @@ require 'active_record'
 require 'active_record/fixtures'
 require 'shoulda'
 require 'shoulda/active_record'
+require 'logger'
+
+#ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 require File.dirname(__FILE__) + '/lib/database'
 require File.expand_path(File.join(File.dirname(__FILE__), '/../lib/cockpit'))
-require File.dirname(__FILE__) + '/lib/user'
 
 class Object
   include Cockpit
 end
+
+require File.dirname(__FILE__) + '/lib/user'
 
 ActiveRecord::Base.class_eval do
   def self.detonate
@@ -24,6 +28,11 @@ ActiveRecord::Base.class_eval do
 end
 
 ActiveSupport::TestCase.class_eval do
+  
+  def assert_default_setting(correct_value, correct_type, test_value)
+    assert_equal correct_value, test_value
+    assert_equal correct_type, test_value.class
+  end
   
   def load_settings
     Cockpit do

@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'defined-by'
 
 this = File.expand_path(File.dirname(__FILE__))
 Dir["#{this}/cockpit/*"].each { |c| require c unless File.directory?(c) }

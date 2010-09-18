@@ -1,86 +1,82 @@
 module Cockpit
   # settings have one direct definition and many child proxy
   class Settings
+    include Global
+    
     class << self
-      attr_accessor :definitions
-      
-      # Cockpit::Settings.define!(:name => "root", :scope => "default")
-      def define!(*args, &block)
-        setting = Cockpit::Settings.new(*args, &block)
-        @root ||= setting
-        setting
+      def specs
+        @specs ||= {}
       end
       
-      def store
-        root.store
-      end
-      
-      def store_type
-        @store_type ||= :memory
-      end
-      
-      def definitions
-        @definitions ||= []
-      end
-      
-      def definitions_for(name)
-        definitions.detect do |i|
-          i.name == name.to_s
+      def define!(options = {}, &block)
+        options = configure(options)
+        
+        unless options[:class] == NilClass
+          options[:class].send(:include, Cockpit::Store.support(options[:store]))
         end
+        
+        spec options[:name], options[:class], Cockpit::Settings::Spec.new(options, &block)
+        
+        settings  = Cockpit::Settings.new(options)
+        
+        @global   = settings if options[:name] == "default" && options[:class] == NilClass
+        
+        settings
       end
       
-      def definitions_for?(name)
-        !definitions_for(name).blank?
+      def configure(options)
+        name                = (options[:name]  || "default").to_s
+        relationship        = options[:class] || options[:for] || options[:class_name] || options[:record]
+        store               = options[:store]
+        
+        # class to include this in
+        clazz = case relationship
+        when Class
+          relationship
+        when Object
+          relationship.class
+        when String, Symbol
+          Object.const_get(relationship.to_s)
+        else
+          NilClass
+        end
+        
+        # store to use in the include
+        unless store
+          if defined?(::ActiveRecord::Base) && clazz.ancestors.include?(::ActiveRecord::Base)
+            store = :active_record
+          else
+            store = :memory
+          end
+        end
+        
+        options[:class] = clazz
+        options[:store] = store
+        options[:name]  = name
+        
+        options
       end
       
-      def root
-        @root ||= Cockpit::Settings.new(:name => "root", :store => store_type, :scope => "default")
+      def spec(name, clazz = NilClass, value = nil)
+        specs[clazz.to_s] ||= {}
+        specs[clazz.to_s][name.to_s] ||= value if value
+        specs[clazz.to_s][name.to_s]
       end
       
-      def [](key)
-        root[key]
-      end
-
-      def []=(key, value)
-        root[key] = value
-      end
-
-      def clear
-        root.clear
-      end
-      
-      def default(key)
-        root.default(key)
-      end
-      
-      def inspect
-        "Cockpit::Settings root: #{root.inspect}"
+      def global
+        @global
       end
     end
     
-    attr_accessor :name, :scope, :store, :record
+    attr_reader :name, :record, :store, :store_type
 
-    # Settings.new(:store => :memory, :record => @user, :definitions => Settings.definitions.first)
-    def initialize(*args, &block)
-      options = args.extract_options!
-      options[:name] ||= "root"
-      options[:store] ||= args.first
-      options.each do |k, v|
-        send("#{k}=", v)
-      end
-      raise ArgumentError.new("pass in a :store to Cockpit::Settings") if self.store.nil?
-      
-      args << options
-      
-      if definition = self.class.definitions_for(options[:name])
-        definition.define!(*args, &block)
-      else
-        self.class.definitions << Cockpit::Definitions.new(*args, &block)
-      end
-    end
-    
-    def store=(value)
-      @store = Cockpit::Store.new(name, value, record).adapter
+    # Settings.new(:record => @user, :name => :profile)
+    def initialize(options = {}, &block)
+      options   = self.class.configure(options)
+      @name     = options[:name]
+      @record   = options[:record]
+      @store_type = options[:store]
+      @store    = Cockpit::Store.use(options)
     end
     
     def merge!(hash)
@@ -88,11 +84,11 @@ module Cockpit
         self[key] = value
       end
     end
-
+    
     def keys
-      definitions.keys
+      spec.keys
     end
-
+    
     def [](key)
       self.store[key.to_s] || default(key.to_s)
     end
@@ -106,15 +102,15 @@ module Cockpit
     end
     
     def has_key?(key)
-      !_definition(key).blank?
+      !definition(key).blank?
     end
     
     def default(key)
-      _definition(key).value
+      definition(key).value
     end
     
     def definition(key)
-      _definition(key).dup
+      spec.definition(key)
     end
     
     def to_hash
@@ -124,22 +120,30 @@ module Cockpit
       end
     end
     
+    def each(&block)
+      keys.each do |key|
+        case block.arity
+        when 1
+          yield(key)
+        when 2
+          yield(key, self[key])
+        end
+      end
+    end
+    
     def roots
-      @roots ||= keys.select { |key| key !~ /\./ }
+      spec.roots
+    end
+    
+    def spec
+      @spec ||= self.class.spec(self.name, self.record.class)
     end
     
     protected
-    def definitions
-      @definitions ||= self.class.definitions_for(self.name)
-    end
-    
-    def _definition(key)
-      definitions[key.to_s]
-    end
     
     def method_missing(method, *args, &block)
       if has_key?(method)
-        definition(method)
+        Cockpit::Scope.new(self, method, *args, &block)
       else
         super(method, *args, &block)
       end
