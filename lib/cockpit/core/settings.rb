@@ -71,7 +71,6 @@ module Cockpit
     
     attr_reader :name, :record, :store, :store_type
 
-    # Settings.new(:record => @user, :name => :profile)
     def initialize(options = {}, &block)
       options   = self.class.configure(options)
       @name     = options[:name]

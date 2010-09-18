@@ -52,11 +52,25 @@ class ActiveRecordTest < ActiveRecord::TestCase
         @user.save!
         
         # ideally want some sort of caching mechanism, so it retrieves and saves all settings
-        assert_queries(3) do
+        assert_queries(2) do
           user = User.last
           user.cockpit["with_attributes.array"]
           user.cockpit["implicitly_typed.float"]
         end
+      end
+      
+      should "update cache when settings are created/updated" do
+        @user = User.last
+        
+        assert_equal 1, @user.settings.all.length
+        
+        assert_equal @user.settings.all[0], @user.cockpit.store.cache[0]
+        
+        @user.cockpit["implicitly_typed.integer"] = 2
+        
+        assert_equal @user.settings.all[1], @user.cockpit.store.cache[1]
+
+        assert_equal 2, @user.settings.all.length
       end
     end
     

@@ -13,10 +13,6 @@ module Cockpit
         def []=(key, value)
           global[key] = value
         end
-        
-        def global(key = "default")
-          spec(key, NilClass)
-        end
       end
     end
   end

@@ -30,16 +30,21 @@ module Cockpit
       set_table_name 'settings'
       belongs_to :configurable, :polymorphic => true
       
+      def cockpit
+        configurable ? configurable.cockpit : Cockpit::Settings.global
+      end
+      
       def parsed_value
         JSON.parse(value)['root']
       end
     end
     
     class Store
-      attr_reader :record
+      attr_reader :record, :cache, :context
       
-      def initialize(record)
+      def initialize(record, context = "default")
         @record = record
+        @context = context
       end
       
       def key?(key)
@@ -67,15 +72,11 @@ module Cockpit
           setting = Setting.new(attributes)
           setting.key = key
           setting.save!
+          cache << setting
           record.settings << setting if record
         end
       end
       
-      def fetch(key, value = nil)
-        value ||= block_given? ? yield(key) : default # TODO: Shouldn't yield if key is present?
-        self[key] || value
-      end
-
       def delete(key)
         setting = find_setting(key)
         if setting
@@ -84,19 +85,30 @@ module Cockpit
           record.reload if record
         end
       end
-
+      
       def clear
         record.settings.destroy_all
       end
       
+      def update_setting(setting)
+        cache.map! do |item|
+          item.id == setting.id ? setting : item
+        end if cache
+      end
+      
+      def cache
+        if record
+          @cache ||= record.settings.all
+        else
+          @cache ||= Setting.all(:conditions => configurable_attributes)
+        end
+        
+        @cache
+      end
+      
       private
       def find_setting(key)
-        if record
-          return nil if record.new_record?
-          record.settings.all.detect { |i| i.key == key }
-        else
-          Setting.find_by_key(key, :conditions => configurable_attributes)
-        end
+        cache.detect { |i| i.key == key }
       end
       
       def configurable_attributes
@@ -108,6 +120,7 @@ module Cockpit
           conditions[:configurable_type] = nil
           conditions[:configurable_id] = nil
         end
+        conditions[:context] = context
         conditions
       end
     end

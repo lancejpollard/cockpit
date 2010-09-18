@@ -21,7 +21,7 @@ module Cockpit
       end
       
       def use(options)
-        eval("::#{find(options[:store])}::Store".gsub(/::[:]+/, "::")).new(options[:record])
+        eval("::#{find(options[:store])}::Store".gsub(/::[:]+/, "::")).new(options[:record], options[:name])
       end
       
       def support(name)

@@ -5,10 +5,11 @@ module Cockpit
     end
     
     class Store < Hash
-      attr_reader :name
+      attr_reader :name, :context
       
-      def initialize(name)
+      def initialize(name, context = "default")
         @name = name
+        @context = context
       end
     end
   end
