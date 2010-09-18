@@ -1,6 +1,6 @@
 <h1>Cockpit <img src='http://imgur.com/oXAb6.png' width='16' height='15'/></h1>
 
-> Super DRY Settings for Ruby, Rails, and Sinatra Apps.  Thin layer above wycat's [Moneta](http://github.com/wycats/moneta) for pluggable backend support.
+> Super DRY Settings for Ruby, Rails, and Sinatra Apps with pluggable backend support.
 
 ## How it works
 
@@ -114,17 +114,5 @@ You can also associate a hash with each setting definition.  This is great for s
 And you can access the definition object directly:
 
     Cockpit::Settings.definition("site.time_zones").attributes[:options]
-    
-## Customizations
-
-Not yet implemented, just ideas.
-
-If you want to extend the Relationship model and reference that in your child/parent classes, you can do that like so:
-
-    class Bookmark < ActsAsJoinable::Relationship; end
-    
-    class User < ActiveRecord::Base
-      joins :posts, :as => :parent, :through => :bookmark
-    end
     
 <cite>copyright [@viatropos](http://viatropos.com) 2010</cite>
