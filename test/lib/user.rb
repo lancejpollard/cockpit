@@ -33,8 +33,8 @@ class User < ActiveRecord::Base
     end
     
     settings_with_callbacks do
-      name "Lance", :after_set => :set_name
-      car "Honda", :before_set => lambda { self.car = "Accord" }
+      name "Lance", :after => :set_name
+      car "Honda", :before => lambda { self.car = "Accord" }
       nope "I'm invalid", :if => lambda { |key, value|
         !self.is_a?(User)
       }

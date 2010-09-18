@@ -44,8 +44,8 @@ module Cockpit
           
           @validation = attributes.delete(:if)
           @callbacks = {
-            :before_set => attributes.delete(:before_set),
-            :after_set  => attributes.delete(:after_set)
+            :before => attributes.delete(:before),
+            :after  => attributes.delete(:after)
           }
           
           @type     ||= @value.class
@@ -129,9 +129,9 @@ module Cockpit
       # callbacks
       def with_callbacks(record, new_value, &block)
         validate(record, new_value) do
-          callback(:before_set, record, new_value)
+          callback(:before, record, new_value)
           yield(new_value)
-          callback(:after_set, record, new_value)
+          callback(:after, record, new_value)
         end
       end
       

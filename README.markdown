@@ -75,7 +75,7 @@ You can also associate settings with any object (plain Object, ActiveRecord, Mon
           favorite_color "red"
         end
         settings do
-          birthday :after_set => :queue_birthday_message, :if => lambda { |key, value|
+          birthday :after => :queue_birthday_message, :if => lambda { |key, value|
             value =~ /\d\d\/\d\d\/\d\d\d\d\// # 10/03/1986
           }
           number_of_children, Integer
