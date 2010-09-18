@@ -11,7 +11,7 @@ module Cockpit
         @stores[name.to_sym] = case name.to_sym
         when :active_record
           require "#{base_path}/active_record"
-          "::Cockpit::ActiveRecord"
+          "::Cockpit::AR"
         when :mongo
           require "#{base_path}/mongo"
           "::Cockpit::Mongo"

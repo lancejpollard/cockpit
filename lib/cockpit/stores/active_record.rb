@@ -5,11 +5,11 @@ rescue LoadError
 end
 
 module Cockpit
-  module ActiveRecord
+  module AR
     module Support
       def self.included(base)
         base.class_eval do
-          has_many :settings, :as => :configurable, :class_name => "::Cockpit::ActiveRecord::Setting", :dependent => :destroy
+          has_many :settings, :as => :configurable, :class_name => "::Cockpit::AR::Setting", :dependent => :destroy
           
           unless respond_to?("get")
             def get(key)
@@ -72,7 +72,7 @@ module Cockpit
           setting = Setting.new(attributes)
           setting.key = key
           record.settings << setting if record
-#          setting.save!
+          setting.save!
           cache << setting
         end
       end

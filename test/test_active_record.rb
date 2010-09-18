@@ -28,7 +28,7 @@ class ActiveRecordTest < ActiveRecord::TestCase
         @user.cockpit["implicitly_typed.string"] = "Pollard"
 
         assert_equal "Pollard", @user.cockpit["implicitly_typed.string"]
-        assert_equal "Pollard", Cockpit::ActiveRecord::Setting.find_by_key("implicitly_typed.string").parsed_value
+        assert_equal "Pollard", Cockpit::AR::Setting.find_by_key("implicitly_typed.string").parsed_value
       end
 
       should "get and set definitions dynamically via Cockpit::Scope" do
@@ -36,7 +36,7 @@ class ActiveRecordTest < ActiveRecord::TestCase
 
         @user.cockpit.implicitly_typed.float.value = 2.0
         
-        record = Cockpit::ActiveRecord::Setting.find_by_key("implicitly_typed.float")
+        record = Cockpit::AR::Setting.find_by_key("implicitly_typed.float")
 
         assert_equal 2.0, @user.cockpit.implicitly_typed.float.value
         assert_equal 2.0, record.parsed_value
@@ -161,7 +161,7 @@ class ActiveRecordTest < ActiveRecord::TestCase
       should "set global settings" do
         Cockpit::Settings("asset.thumb.width", 200)
         
-        record = Cockpit::ActiveRecord::Setting.find_by_key("asset.thumb.width")
+        record = Cockpit::AR::Setting.find_by_key("asset.thumb.width")
         
         assert_equal 200, Cockpit::Settings("asset.thumb.width")
         assert_equal 200, record.parsed_value
