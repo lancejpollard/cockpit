@@ -69,12 +69,13 @@ module Cockpit
       end
     end
     
-    attr_reader :name, :record, :store, :store_type
+    attr_reader :name, :record, :store, :store_type, :record_type
 
     def initialize(options = {}, &block)
       options   = self.class.configure(options)
       @name     = options[:name]
       @record   = options[:record]
+      @record_type = options[:class] || @record.class
       @store_type = options[:store]
       @store    = Cockpit::Store.use(options)
     end
@@ -136,7 +137,7 @@ module Cockpit
     end
     
     def spec
-      @spec ||= self.class.spec(self.name, self.record.class)
+      @spec ||= self.class.spec(self.name, self.record_type)
     end
     
     protected
