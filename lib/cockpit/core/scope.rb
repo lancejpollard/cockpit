@@ -16,7 +16,13 @@ module Cockpit
     end
     
     def process(method, *args, &block)
-      node = method.to_s.gsub("=", "")
+      node = method.to_s
+
+      boolean = !!(node =~ /\?$/)
+      node.gsub!(/\?/, "") if boolean
+      
+      set     = !!(node =~ /=$/)
+      node.gsub!("=", "") if set
       
       if key
         @key       = "#{key}.#{node}"
@@ -24,7 +30,13 @@ module Cockpit
         @key       = node
       end
       
-      self
+      if boolean == true
+        settings.has_key?(key)
+      elsif set == true
+        self.value = args.pop
+      else
+        self
+      end
     end
     
     def method_missing(method, *args, &block)

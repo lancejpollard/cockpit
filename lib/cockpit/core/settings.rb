@@ -67,6 +67,10 @@ module Cockpit
       def global
         @global
       end
+      
+      def method_missing(method, *args, &block)
+        global.send(method, *args, &block)
+      end
     end
     
     attr_reader :name, :record, :store, :store_type, :record_type
@@ -103,7 +107,7 @@ module Cockpit
     end
     
     def has_key?(key)
-      !definition(key).blank?
+      spec.has_key?(key)#!definition(key).blank?
     end
     
     def default(key)
@@ -143,7 +147,9 @@ module Cockpit
     protected
     
     def method_missing(method, *args, &block)
-      if has_key?(method)
+      if method.to_s =~ /(\w+)\?$/
+        has_key?($1)
+      elsif has_key?(method)
         Cockpit::Scope.new(self, method, *args, &block)
       else
         super(method, *args, &block)

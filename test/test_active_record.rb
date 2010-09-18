@@ -23,7 +23,7 @@ class ActiveRecordTest < ActiveRecord::TestCase
         assert_default_setting 1.0, Float, @user.cockpit["implicitly_typed.float"]
         assert_default_setting Time.parse("01-01-2001"), Time, @user.cockpit["implicitly_typed.datetime"]
       end
-
+      
       should "set instance settings" do
         @user.cockpit["implicitly_typed.string"] = "Pollard"
 
@@ -103,6 +103,12 @@ class ActiveRecordTest < ActiveRecord::TestCase
         assert_equal @settings, Cockpit::Settings.global
         
         assert_equal 100, Cockpit::Settings("asset.thumb.width")
+        
+        # Cockpit::Settings() references a method in global.rb, which calls method missing on Cockpit::Settings.global
+        assert_equal true, Cockpit::Settings().asset?
+        # Cockpit::Settings references the class, which calls method missing on Cockpit::Settings.global
+        assert_equal true, Cockpit::Settings.asset.thumb?
+        assert_equal true, Cockpit::Settings.asset.thumb.width?
       end
       
       should "set global settings" do
@@ -113,6 +119,10 @@ class ActiveRecordTest < ActiveRecord::TestCase
         assert_equal 200, Cockpit::Settings("asset.thumb.width")
         assert_equal 200, record.parsed_value
         assert_equal nil, record.configurable
+        
+        Cockpit::Settings.page.per_page = 100
+        
+        assert_equal 100, Cockpit::Settings("page.per_page")
       end
     end
     

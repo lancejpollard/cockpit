@@ -20,7 +20,7 @@ module Cockpit
   def self.Settings(*args)
     case args.length
     when 0
-      nil
+      Cockpit::Settings.global
     when 1
       case args.first
       when Hash

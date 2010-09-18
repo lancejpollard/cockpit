@@ -10,8 +10,20 @@ module Cockpit
         @roots    = Cockpit::Settings::Definition.define!(options, &block)
       end
       
+      # only returns keys that aren't defining a new scope.
+      # so site { title "Hello"; pages 10 } would just return
+      # ["site.title", "site.pages"], excluding "site"
       def keys
-        roots.map(&:keys).flatten
+        @keys ||= roots.map(&:keys).flatten
+      end
+      
+      # returns all keys, even the ones defining new scope
+      def all_keys
+        @all_keys ||= roots.map(&:all_keys).flatten
+      end
+      
+      def has_key?(key)
+        all_keys.include?(key.to_s)
       end
       
       def each(&block)
@@ -35,6 +47,17 @@ module Cockpit
           return value unless value.nil?
         end
         nil
+      end
+      
+      def to_hash
+        keys.inject({}) do |hash, key|
+          hash[key] = self[key]
+          hash
+        end
+      end
+      
+      def to_tree
+        roots.map(&:to_tree)
       end
       
     end

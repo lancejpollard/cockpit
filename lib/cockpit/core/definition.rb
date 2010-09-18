@@ -14,7 +14,7 @@ module Cockpit
       # keys is the nested keys associated with child values
       attr_reader :key, :value
       attr_reader :attributes, :type
-      attr_reader :parent, :children, :nested
+      attr_reader :nested
       
       def initialize(key, *args, &block)
         @key        = key.to_s
@@ -67,11 +67,11 @@ module Cockpit
       end
       
       def keys
-        if nested?
-          value.map(&:keys).flatten.map {|key| "#{self.key}.#{key}"}
-        else
-          [key]
-        end
+        @keys ||= get_keys(false, :keys)
+      end
+      
+      def all_keys
+        @all_keys ||= get_keys(true, :all_keys)
       end
       
       def child(key)
@@ -112,8 +112,22 @@ module Cockpit
         end
       end
       
+      def to_tree
+        {key => nested? ? value.map(&:to_tree) : value}
+      end
+      
       def nested?
         self.nested == true
+      end
+      
+      protected
+      def get_keys(include_self, method)
+        if nested?
+          @keys = include_self ? [key] : []
+          @keys += value.map(&method).flatten.map {|key| "#{self.key}.#{key}"}
+        else
+          @keys = [key]
+        end
       end
     end
   end
