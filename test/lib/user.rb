@@ -1,9 +1,7 @@
-class User < ActiveRecord::Base
-  include Cockpit
-  
+class User < ActiveRecord::Base  
   attr_accessor :name, :car
   
-  cockpit :active_record do
+  cockpit do
     implicitly_typed do
       string      "Lance"
       array       %w(red green blue)
