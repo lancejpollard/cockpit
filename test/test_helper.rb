@@ -34,8 +34,8 @@ ActiveSupport::TestCase.class_eval do
     assert_equal correct_type, test_value.class
   end
   
-  def load_settings
-    Cockpit do
+  def load_settings(store = :active_record)
+    Cockpit store do
       asset :title => "Asset (and related) Settings" do
         thumb do
           width 100, :tip => "Thumb's width"

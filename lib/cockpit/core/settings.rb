@@ -9,6 +9,7 @@ module Cockpit
       end
       
       def define!(options = {}, &block)
+        options = {:store => options.to_sym} unless options.is_a?(Hash)
         options = configure(options)
         
         unless options[:class] == NilClass

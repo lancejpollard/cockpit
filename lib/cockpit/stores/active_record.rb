@@ -56,9 +56,11 @@ module Cockpit
       end
     
       def []=(key, value)
-        record.save! if record.new_record?
+        record.save! if record && record.new_record?
+        
         setting = find_setting(key)
         attributes = {:value => {'root' => value}.to_json}.merge(configurable_attributes)
+        
         if setting
           setting.update_attributes!(attributes)
         else
@@ -89,8 +91,8 @@ module Cockpit
       
       private
       def find_setting(key)
-        return nil if record.new_record?
         if record
+          return nil if record.new_record?
           record.settings.all.detect { |i| i.key == key }
         else
           Setting.find_by_key(key, :conditions => configurable_attributes)
