@@ -19,7 +19,7 @@ You define settings like this:
     Cockpit :active_record do
       site do
         title "My Site"
-        time_zone lambda { "Hawaii" }
+        time_zone :default => lambda { "Hawaii" }
         feed do
           per_page 10
           formats %w(rss atom)
