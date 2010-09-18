@@ -1,6 +1,8 @@
 class User < ActiveRecord::Base  
   attr_accessor :name, :car
   
+  key :something
+  
   cockpit do
     implicitly_typed do
       string      "Lance"

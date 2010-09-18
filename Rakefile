@@ -5,7 +5,7 @@ require 'rake/gempackagetask'
 spec = Gem::Specification.new do |s|
   s.name              = "cockpit"
   s.authors           = ["Lance Pollard"]
-  s.version           = "0.2.0"
+  s.version           = IO.read("VERSION")
   s.summary           = "Super DRY Configuration Management for Ruby, Rails, and Sinatra Apps.  With Pluggable NoSQL/SQL backends using Moneta"
   s.homepage          = "http://github.com/viatropos/cockpit"
   s.email             = "lancejpollard@gmail.com"
@@ -13,7 +13,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc          = false
   s.rubyforge_project = "cockpit"
   s.platform          = Gem::Platform::RUBY
-  s.files             = %w(README.markdown MIT-LICENSE.markdown) + Dir["{lib}/**/*"]
+  s.files             = %w(README.markdown MIT-LICENSE.markdown VERSION) + Dir["{lib}/**/*"]
   s.require_path      = "lib"
   s.add_dependency("defined-by")
 end

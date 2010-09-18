@@ -1,4 +1,5 @@
 module Cockpit
+  
   def self.included(base)
     base.extend(ClassMethods)
     base.send(:include, InstanceMethods)
@@ -22,6 +23,12 @@ module Cockpit
       end
       
       @cockpit
+    end
+    
+    unless respond_to?(:key)
+      def key(*args)
+        
+      end
     end
   end
   

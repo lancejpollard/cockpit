@@ -15,3 +15,9 @@ end
 def Cockpit(*args, &block)
   Settings(*args, &block)
 end
+
+module Cockpit
+  def self.version
+    @version ||= IO.read(File.dirname(__FILE__) + '/../VERSION')
+  end
+end
