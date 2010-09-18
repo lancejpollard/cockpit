@@ -1,6 +1,8 @@
 class User < ActiveRecord::Base
   include Cockpit
   
+  attr_accessor :name, :car
+  
   cockpit :active_record do
     implicitly_typed do
       string      "Lance"
@@ -29,5 +31,17 @@ class User < ActiveRecord::Base
       string      "Lance",                String, :title => "A String"
       array       %w(red green blue),     Array, :title => "Colors", :options => %w(red green blue yellow black white)
     end
+    
+    settings_with_callbacks do
+      name "Lance", :after_set => :set_name
+      car "Honda", :before_set => lambda { self.car = "Accord" }
+      nope "I'm invalid", :if => lambda { |key, value|
+        !self.is_a?(User)
+      }
+    end
+  end
+  
+  def set_name(key, value)
+    self.name = value
   end
 end

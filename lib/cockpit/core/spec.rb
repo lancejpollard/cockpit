@@ -46,7 +46,7 @@ module Cockpit
           value = root.child(key)
           return value unless value.nil?
         end
-        nil
+        raise ArgumentError.new("Settings '#{name}' doesn't have key '#{key}'")
       end
       
       def to_hash

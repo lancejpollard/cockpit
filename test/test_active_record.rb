@@ -87,6 +87,25 @@ class ActiveRecordTest < ActiveRecord::TestCase
         assert_equal 2, user_a.cockpit["implicitly_typed.integer"]
         assert_equal 10, user_b.cockpit["implicitly_typed.integer"]
       end
+      
+      should "respond to callbacks" do
+        assert_equal nil, @user.name
+        assert_equal nil, @user.car
+        
+        @user.cockpit.settings_with_callbacks.name = "viatropos"
+        @user.cockpit.settings_with_callbacks.car = "Accord"
+        
+        assert_equal "viatropos", @user.name
+        assert_equal "Accord", @user.car
+      end
+      
+      should "have a validation" do
+        assert_equal "I'm invalid", @user.settings_with_callbacks.nope.value
+        
+        @user.settings_with_callbacks.nope = "Try to change me"
+        
+        assert_not_equal "Try to change me", @user.settings_with_callbacks.nope.value
+      end
     end
     
     context "global settings" do

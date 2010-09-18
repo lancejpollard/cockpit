@@ -13,7 +13,7 @@ module Cockpit
       
       # keys is the nested keys associated with child values
       attr_reader :key, :value
-      attr_reader :attributes, :type
+      attr_reader :attributes, :type, :callbacks, :validation
       attr_reader :nested
       
       def initialize(key, *args, &block)
@@ -41,6 +41,12 @@ module Cockpit
           else
             @value = args
           end
+          
+          @validation = attributes.delete(:if)
+          @callbacks = {
+            :before_set => attributes.delete(:before_set),
+            :after_set  => attributes.delete(:after_set)
+          }
           
           @type     ||= @value.class
           @nested   = false
@@ -120,6 +126,62 @@ module Cockpit
         self.nested == true
       end
       
+      # callbacks
+      def with_callbacks(record, new_value, &block)
+        validate(record, new_value) do
+          callback(:before_set, record, new_value)
+          yield(new_value)
+          callback(:after_set, record, new_value)
+        end
+      end
+      
+      def validate(record, new_value, &block)
+        yield if execute(validation, record, new_value)
+      end
+      
+      def callback(name, record, new_value)
+        execute(callbacks[name], record, new_value)
+      end
+      
+      def execute(executable, record, new_value)
+        return true unless executable
+        
+        case executable
+        when String, Symbol
+          if record.respond_to?(executable)
+            case record.method(executable).arity
+            when 0
+              record.send(executable)
+            when 1
+              record.send(executable, key)
+            when 2
+              record.send(executable, key, new_value)
+            end
+          end
+        when Proc
+          case executable.arity
+          when 0, -1
+            if record
+              record.instance_eval(&executable)
+            else
+              executable.call
+            end
+          when 1
+            if record
+              record.instance_exec(key, &executable)
+            else
+              executable.call(key)
+            end
+          when 2
+            if record
+              record.instance_exec(key, new_value, &executable)
+            else
+              executable.call(key, new_value)
+            end
+          end
+        end
+      end
+      
       protected
       def get_keys(include_self, method)
         if nested?
@@ -128,6 +190,10 @@ module Cockpit
         else
           @keys = [key]
         end
+      end
+      
+      def call_proc(proc, record)
+        
       end
     end
   end

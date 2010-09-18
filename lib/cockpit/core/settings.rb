@@ -115,7 +115,13 @@ module Cockpit
     end
     
     def []=(key, value)
-      self.store[key.to_s] = value
+      with_callbacks(key, value) do |value|
+        self.store[key.to_s] = value
+      end
+    end
+    
+    def with_callbacks(key, new_value, &block)
+      definition(key).with_callbacks(record, new_value, &block)
     end
     
     def clear
