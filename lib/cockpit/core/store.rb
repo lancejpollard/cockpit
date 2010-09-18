@@ -12,6 +12,9 @@ module Cockpit
         when :active_record
           require "#{base_path}/active_record"
           "::Cockpit::ActiveRecord"
+        when :mongo
+          require "#{base_path}/mongo"
+          "::Cockpit::Mongo"
         else
           require "#{base_path}/memory"
           "::Cockpit::Memory"

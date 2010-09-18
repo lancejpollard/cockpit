@@ -1,7 +1,7 @@
 begin
   require "active_record"
 rescue LoadError
-  abort "You need the activerecord gem in order to use the ActiveRecord moneta store"
+  abort "You need the activerecord gem in order to use the ActiveRecord cockpit store"
 end
 
 module Cockpit
@@ -17,7 +17,7 @@ module Cockpit
             end
           end
           
-          unless respond_to?("set=")
+          unless respond_to?("set")
             def set(key, value)
               cockpit[key] = value
             end
