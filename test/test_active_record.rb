@@ -72,6 +72,21 @@ class ActiveRecordTest < ActiveRecord::TestCase
 
         assert_equal 2, @user.settings.all.length
       end
+      
+      should "distinguish between multiple instances" do
+        user_a = User.create!
+        user_b = User.create!
+        
+        user_a.cockpit["implicitly_typed.integer"] = 2
+        user_b.cockpit["implicitly_typed.integer"] = 10
+        
+        user_a.reload
+        user_b.reload
+        
+        assert_equal 1, User.cockpit["implicitly_typed.integer"]
+        assert_equal 2, user_a.cockpit["implicitly_typed.integer"]
+        assert_equal 10, user_b.cockpit["implicitly_typed.integer"]
+      end
     end
     
     context "global settings" do
