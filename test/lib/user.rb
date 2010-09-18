@@ -40,10 +40,7 @@ class User < ActiveRecord::Base
         :before => lambda { |key|
           self.name ||= "Lance"
         },
-        :after => :queue_birthday_message,
-        :if => lambda { |key, value|
-          value =~ /\d\d\/\d\d\/\d\d\d\d/ # 10/03/1986
-        }
+        :after => :queue_birthday_message
     end
   end
   

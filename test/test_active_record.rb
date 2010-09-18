@@ -60,7 +60,7 @@ class ActiveRecordTest < ActiveRecord::TestCase
       end
       
       should "update cache when settings are created/updated" do
-        @user = User.last
+        @user.cockpit["implicitly_typed.string"] = "John"
         
         assert_equal 1, @user.settings.all.length
         
@@ -69,7 +69,7 @@ class ActiveRecordTest < ActiveRecord::TestCase
         @user.cockpit["implicitly_typed.integer"] = 2
         
         assert_equal @user.settings.all[1], @user.cockpit.store.cache[1]
-
+        
         assert_equal 2, @user.settings.all.length
       end
       
@@ -112,6 +112,27 @@ class ActiveRecordTest < ActiveRecord::TestCase
         
         assert_equal "10/03/1986", @user.settings_with_callbacks.birthday.value
         assert_equal "Lance", @user.name # randomly set it in birthday before callback, for demo purposes
+      end
+      
+      # so you can in the controller do this:
+      #   def update
+      #     @user.cockpit.update(params[:settings])
+      #   end
+      should "accept multiple attributes at once" do
+        date = DateTime.parse("10/03/1986")
+        string = "Multiple settings at once"
+        
+        @user.cockpit.update(
+          "settings_with_callbacks.birthday"  => date,
+          "implicitly_typed.string"           => string
+        )
+        
+        assert_equal date, @user.settings_with_callbacks.birthday.value
+        assert_equal string, @user.implicitly_typed.string.value
+      end
+      
+      teardown do
+        User.destroy_all
       end
     end
     

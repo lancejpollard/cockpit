@@ -147,6 +147,12 @@ module Cockpit
       end
     end
     
+    def update(hash)
+      hash.each do |key, value|
+        self[key] = value
+      end
+    end
+    
     def each(&block)
       keys.each do |key|
         case block.arity
