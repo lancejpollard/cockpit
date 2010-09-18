@@ -2,9 +2,13 @@
 
 > Super DRY Settings for Ruby, Rails, and Sinatra Apps with pluggable backend support.
 
+## Install
+
+    sudo gem install cockpit
+
 ## How it works
 
-You can define arbitrarily nested key/value pairs of any type, and customize them from an Admin panel or the terminal, and save them to the MySQL, MongoDB, Redis, or even a File.
+You can define arbitrarily nested key/value pairs of any type, and customize them from an Admin panel or the terminal, and save them to the MySQL, MongoDB, Redis, in memory, or even a File.
 
 1. Settings can be associated with a model class
 2. Settings can be associated with a model instance, which can use the model class settings as defaults
@@ -12,7 +16,7 @@ You can define arbitrarily nested key/value pairs of any type, and customize the
 
 You define settings like this:
 
-    settings = Cockpit :mongo do
+    Cockpit :active_record do
       site do
         title "My Site"
         time_zone lambda { "Hawaii" }
@@ -23,41 +27,56 @@ You define settings like this:
       end
     end
 
-That gives you [this data structure](http://gist.github.com/558480), which is accessed internally as a flat hash with keys like this:
+That gives you an instance of `Cockpit::Settings`, a tree data structure.
 
-    ["site.feed.formats", "site.time_zone", "site.feed.per_page", "site", "site.feed", "site.title"]
-       
-## Global and Instance Settings
+## Global Settings API
 
-By default you will have 1 set of global settings, accessible via `Cockpit::Settings.root` which is populated in this call:
+If you've defined your `:active_record` settings like above, which are _global_ settings, you can use them like this:
 
-    Cockpit :mongo do
-      site do
-        author "Lance"
-      end
+### `Get` Methods
+
+    Cockpit::Settings["site.feed.per_page"] #=> 10
+    Cockpit::Settings("site.feed.per_page") #=> 10
+    Cockpit::Settings.site.feed.per_page.value #=> 10
+    
+Everything ultimately passes through the hash form of the method, `Cockpit::Settings["path"]`, so that's the most optimized way to do it.
+
+You can also check to see if these settings exist:
+
+    Cockpit::Settings.site.feed.per_page? #=> true
+
+### `Set` Methods
+
+    Cockpit::Settings["site.feed.per_page"] = 20
+    Cockpit::Settings("site.feed.per_page", 20)
+    Cockpit::Settings.site.feed.per_page.value = 20
+    
+### Behind the Scenes
+
+When you define settings using the DSL, they get stored as `Cockpit::Spec` objects into a global hash in the `Cockpit::Settings` class, which is a dictionary of `specs[class][name] = spec`.  Global specs aren't associated with a class (e.g. model class), so the `class` is `NilClass`.  You can have multiple global settings classes if you'd like, just give them names:
+
+    Cockpit :store => :active_record, :name => :more_settings do
+      hello "world"
     end
     
-If you want to have settings encapsulated in an independent scope, you can just assign that to a variable:
+You can access specific global settings like this:
 
-    site_settings = Cockpit :mongo do
-      site do
-        author "Lance"
-      end
-    end
+    Cockpit::Settings.find(:more_settings).hello.value #=> "world"
     
-## Associated Settings with Models
+## Instance Settings API
 
 You can also associate settings with any object (plain Object, ActiveRecord, MongoMapper::Document, etc.):
 
     class User < ActiveRecord::Base
       include Cockpit
       
-      cockpit :mongo do
+      cockpit do
         preferences do
           favorite_color "red"
         end
         settings do
-          google_analytics "123123123"
+          birthday,           Datetime
+          number_of_children, Integer
         end
       end
     end
@@ -65,31 +84,30 @@ You can also associate settings with any object (plain Object, ActiveRecord, Mon
 And access them like this:
 
     user = User.new
-    user.cockpit["settings.google_analytics"] #=> "123123123"
+    user.cockpit["settings.number_of_children"] #=> 300
     user.cockpit["preferences.favorite_color"] = "green"
+    user.cockpit.settings.number_of_children.value = 0
+    user.cockpit.preferences? #=> true
+    
+If your model class doesn't have methods named after the cockpit keys, it will generate methods for you and delegate them to the `cockpit`:
+
+    user.preferences.favorite_color? #=> true
+    user.settings? #=> true
+    user.preferences.favorite_color.value = "turquoise"
     
 ## Swappable Backend
 
-Thanks to the work behind Moneta, there's a clear interface to key/value stores (and some people have added ActiveRecord support which I've included in this).
-
 The current backends supported are these keys:
 
-- mongodb (or 'mongo')
-- redis
 - active_record
-- file
+- mongo
 - memory
-- yaml
 
-It should be easy enough to wrap the rest of the Moneta adapters.
+Soon, or as need be, I'll support redis, files, couchdb, etc.  Haven't needed them yet.
 
-This is specified as the first DSL attribute:
+## Caching
 
-    Cockpit :redis do
-      site do
-        author "Lance"
-      end
-    end
+For Active Record, Cockpit just adds a `has_many :settings` declaration to your model, and loads all of the settings on the first call, caching any further gets to settings for that model.  This means basically that settings are extendable database attributes for your model.
     
 ## Use Cases
 

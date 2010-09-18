@@ -8,7 +8,7 @@ class ActiveRecordTest < ActiveRecord::TestCase
       setup do
         @user = User.new
       end
-
+      
       should "have settings" do
         assert @user.cockpit
         assert_equal "default", @user.cockpit.name
@@ -123,6 +123,15 @@ class ActiveRecordTest < ActiveRecord::TestCase
         Cockpit::Settings.page.per_page = 100
         
         assert_equal 100, Cockpit::Settings("page.per_page")
+      end
+      
+      should "allow multiple global settings" do
+        Cockpit :store => :active_record, :name => :more_settings do
+          hello "world"
+        end
+        
+        assert_equal 2, Cockpit::Settings.global_settings["NilClass"].keys.length
+        assert_equal "world", Cockpit::Settings.find(:more_settings).hello.value
       end
     end
     

@@ -8,6 +8,10 @@ module Cockpit
         @specs ||= {}
       end
       
+      def global_settings
+        @global_settings ||= {}
+      end
+      
       def define!(options = {}, &block)
         options = {:store => options.to_sym} unless options.is_a?(Hash)
         options = configure(options)
@@ -20,7 +24,9 @@ module Cockpit
         
         settings  = Cockpit::Settings.new(options)
         
-        @global   = settings if options[:name] == "default" && options[:class] == NilClass
+        if options[:class] == NilClass
+          global_setting options[:name], options[:class], settings
+        end
         
         settings
       end
@@ -64,8 +70,18 @@ module Cockpit
         specs[clazz.to_s][name.to_s]
       end
       
+      def global_setting(name, clazz = NilClass, value = nil)
+        global_settings[clazz.to_s] ||= {}
+        global_settings[clazz.to_s][name.to_s] = value if value
+        global_settings[clazz.to_s][name.to_s]
+      end
+      
       def global
-        @global
+        global_setting("default")
+      end
+      
+      def find(name)
+        global_setting(name)
       end
       
       def method_missing(method, *args, &block)
